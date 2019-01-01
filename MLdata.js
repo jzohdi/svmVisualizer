@@ -7,7 +7,7 @@ const printf = array_of_values => {
 const showModel = () => {
   $.ajax({
     type: "GET",
-    url: "~/sklearn.py",
+    url: "/sklearn.py",
     contentType: "application/json; charset=utf-8",
     data: {
       myData: "this data"

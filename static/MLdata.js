@@ -4,94 +4,122 @@ const printf = array_of_values => {
   });
 };
 
-const showModel = () => {
+const representData = [
+  { color: "rgb(255, 99, 132)", label: "Classification 1" },
+  { color: "rgb(0, 124, 249)", label: "Classification 2" }
+];
+
+const createNewDataObject = (newValue, newIndex) => {
+  newObj = {};
+  newObj.backgroundColor = representData[newIndex].color;
+  newObj.borderColor = representData[newIndex].color;
+  newObj.label = representData[newIndex].label;
+  newObj.data = [];
+  return newObj;
+};
+
+const parseData = data_set => {
+  const classes = {};
+  const finalData = [];
+  data_set.result.forEach((value, index) => {
+    if (!classes.hasOwnProperty(value)) {
+      const newIndex = Object.keys(classes).length;
+      newDataObject = createNewDataObject(value, newIndex);
+      classes[value] = newIndex;
+      const point = {
+        x: data_set.test_data[index][0],
+        y: data_set.test_data[index][1]
+      };
+      newDataObject.data.push(point);
+      finalData.push(newDataObject);
+    } else {
+      const indexInFinalData = classes[value];
+      const point = {
+        x: data_set.test_data[index][0],
+        y: data_set.test_data[index][1]
+      };
+      finalData[indexInFinalData].data.push(point);
+    }
+  });
+  return finalData;
+};
+const runMethod = () => {
+  const selectedText = $("#select-method :selected").text(); // The text content of the selected option
+  const selectedVal = $("#select-method").val();
+  showModel(selectedVal, "myChart");
+};
+const showModel = (SVMmethod, chartId) => {
   $.ajax({
     type: "GET",
     url: "/get_model/",
     contentType: "application/json; charset=utf-8",
     data: {
-      myData: "this data"
+      runMethod: SVMmethod
     },
     success: function(data) {
-      console.log(data);
+      dataSet = parseData(data);
+      createScatter(dataSet, chartId);
     },
     error: function(jqXHR, textStatus, errorThrown) {
       alert(errorThrown);
     }
   });
 };
-var ctx = document.getElementById("myChart").getContext("2d");
-var scatterChart = new Chart(ctx, {
-  type: "scatter",
-  data: {
-    datasets: [
-      {
-        backgroundColor: "rgb(255, 99, 132)",
-        borderColor: "rgb(255, 99, 132)",
-        label: "Scatter Dataset",
-        data: [
-          {
-            x: -10,
-            y: 0
-          },
-          {
-            x: 0,
-            y: 10
-          },
-          {
-            x: 10,
-            y: 5
-          },
-          { x: 4, y: 3 },
-          { x: 5, y: 6 }
-        ]
+
+const createScatter = (dataSet, targetCanvas) => {
+  const ctx = document.getElementById(targetCanvas).getContext("2d");
+  const scatterChart = new Chart(ctx, {
+    type: "scatter",
+    data: {
+      datasets: dataSet
+    },
+
+    options: {
+      animation: {
+        duration: 1000,
+        easing: "linear"
       },
-      {
-        backgroundColor: "rgb(0, 0, 0)",
-        borderColor: "rgb(0, 0, 0)",
-        label: "Scatter Dataset2",
-        data: [
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        xAxes: [
           {
-            x: -2,
-            y: 5
-          },
+            type: "linear",
+            position: "bottom"
+          }
+        ],
+        yAxes: [
           {
-            x: 5,
-            y: 3
-          },
-          {
-            x: 2,
-            y: 4
+            ticks: {
+              beginAtZero: true
+            }
           }
         ]
       }
-    ]
-  },
-
-  options: {
-    animation: {
-      duration: 1000,
-      easing: "linear"
-    },
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      xAxes: [
-        {
-          type: "linear",
-          position: "bottom"
-        }
-      ],
-      yAxes: [
-        {
-          ticks: {
-            beginAtZero: true
-          }
-        }
-      ]
     }
+  });
+};
+
+const sampleData = [
+  {
+    backgroundColor: "rgb(255, 0, 0)",
+    borderColor: "rgb(255, 0, 0)",
+    label: "scatter1",
+    data: [{ x: 10, y: 2 }, { x: 2, y: 5 }, { x: 1, y: 4 }]
   }
-});
+];
+// createScatter(sampleData, "myChart");
+
+const initSampleData = () => {
+  showModel("rawSampleData", "sampleData");
+};
+
+const initMethodChart = () => {
+  createScatter([{}], "myChart");
+};
+
+initSampleData();
+initMethodChart();
 // var scatterChart2 = new Chart(ctx, {
 //   type: "scatter",
 

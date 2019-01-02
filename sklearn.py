@@ -43,65 +43,65 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 #parent_folder = os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir))
 
 # extract data from csv and obtain array of data sets
-def run_main():
-    data_set = [list(map(float, line.rstrip().split(","))) for line in open("input3.csv")]
-    data_length = len(data_set)
+def show_map(A, B, colors, filename):
+    plt.figure()
+    plt.scatter(A, B, c = colors)
+    #    plt.savefig(str(parent_folder) + filename, bbox_inches='tight')
+    plt.show()
+    plt.clf()
     
-    # A = X_1 B = X_2 Y_vals = y, colors = y separate into colors red vs blue for 1 vs 0 
-    A = [data_set[index][0] for index in range(data_length)]
-    B = [data_set[index][1] for index in range(data_length)]
+def train_classifier(grid, X_train, y_train, X_test, y_test):
+    grid.fit(X_train, y_train)
     
-    Y_vals = np.array([data_set[index][2] for index in range(data_length)])
+    #best_score = grid.best_score_
+    test_out = grid.predict(X_test)
+    #full_map_test = grid.predict(full_map_coordinates)
+    #show_map(full_map_X, full_map_Y, full_map_test, filename)
     
-    colors = np.array(['red' if Y_vals[i] == 1.0 else 'blue' for i in range(data_length)])
+    #print(test_out)
+    return { 'test_data': X_test, 'result': test_out }
+    """
+    num_errors = 0
     
-    # coors  = [[X_1, X_2], ..., [X_1^n, X_2^n]]
-    coords = np.array([[A[i], B[i]] for i in range(data_length)])
+    for index in range(len(y_test)):
+        if y_test[index] != test_out[index]:
+            num_errors += 1
+    total_test = len(test_out)
+    test_acc = (total_test - num_errors)/total_test
     
-    # full maps will be used to show the full prediction map for the classifiers
-    # needs to the be split into X and Y for plt parameters
-    full_map_X = []
-    full_map_Y = []
-    full_map_coordinates = []
+    return str(best_score) + ", " + str(test_acc)    
+            """
+data_set = [list(map(float, line.rstrip().split(","))) for line in open("input3.csv")]
+data_length = len(data_set)
+
+# A = X_1 B = X_2 Y_vals = y, colors = y separate into colors red vs blue for 1 vs 0 
+A = [data_set[index][0] for index in range(data_length)]
+B = [data_set[index][1] for index in range(data_length)]
+
+Y_vals = np.array([data_set[index][2] for index in range(data_length)])
+
+colors = np.array(['red' if Y_vals[i] == 1.0 else 'blue' for i in range(data_length)])
+
+# coors  = [[X_1, X_2], ..., [X_1^n, X_2^n]]
+coords = np.array([[A[i], B[i]] for i in range(data_length)])
+
+# full maps will be used to show the full prediction map for the classifiers
+# needs to the be split into X and Y for plt parameters
+full_map_X = []
+full_map_Y = []
+full_map_coordinates = []
+
+for x in range(0, 40):
+    x_coord = x/10
+for y in range(0, 40):
+    y_coord = y/10
+    full_map_X.append(x_coord)
+    full_map_Y.append(y_coord)
+    full_map_coordinates.append([x_coord, y_coord])
     
-    for x in range(0, 40):
-        x_coord = x/10
-    for y in range(0, 40):
-        y_coord = y/10
-        full_map_X.append(x_coord)
-        full_map_Y.append(y_coord)
-        full_map_coordinates.append([x_coord, y_coord])
-        
-    def show_map(A, B, colors, filename):
-        plt.figure()
-        plt.scatter(A, B, c = colors)
-        #    plt.savefig(str(parent_folder) + filename, bbox_inches='tight')
-        plt.show()
-        plt.clf()
-    
-    def train_classifier(grid, X_train, y_train, X_test, y_test, filename):
-        grid.fit(X_train, y_train)
-        
-        #best_score = grid.best_score_
-        test_out = grid.predict(X_test)
-        #full_map_test = grid.predict(full_map_coordinates)
-        #show_map(full_map_X, full_map_Y, full_map_test, filename)
-        
-        #print(test_out)
-        return { 'test_data': X_test, 'result': test_out }
-        """
-        num_errors = 0
-        
-        for index in range(len(y_test)):
-            if y_test[index] != test_out[index]:
-                num_errors += 1
-        total_test = len(test_out)
-        test_acc = (total_test - num_errors)/total_test
-        
-        return str(best_score) + ", " + str(test_acc)
-        """
+def run_main(method):
      
-    def C_test():
+    def C_test(method):
     
         k_folds = 5
         C_vals = [0.1, 0.5, 1, 5, 10, 50, 100]
@@ -118,6 +118,9 @@ def run_main():
         
         testing_A = [X_test[index][0] for index in range(len(X_test))]
         testing_B = [X_test[index][1] for index in range(len(X_test))]
+        
+        if method == 'rawSampleData':
+            return { 'test_data': coords, 'result': colors }
         #show map for the cross validated training set
         #show_map(training_A, training_B, y_train, "/cross_validation.png")
         ##############################
@@ -136,7 +139,9 @@ def run_main():
             sv = SVC(kernel = "linear")
             grid = GridSearchCV(sv, params)
             
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/linear.png")
+            linear_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            
+            return linear_result
             #print(sv.score(X_test, y_test))
             #linear_test()
         
@@ -150,7 +155,9 @@ def run_main():
             
             grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params)
             
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/polynomial.png")
+            poly_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            
+            return poly_result
         
         def RBF_Kernel():
             
@@ -165,29 +172,10 @@ def run_main():
             grid = GridSearchCV(SVC(), param_grid = params)
             
             #print(grid.cv_results_)                
-            rbf_result = train_classifier(grid, X_train, y_train, X_test, y_test, "/RBF.png")
+            rbf_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             
             return rbf_result
-            #print(grid.best_params_, grid.best_score_)
-            #clf = svm.SVC(C = C_val)
-            #(best_C, best_score) = (grid.best_params_['C'], grid.best_score_)
-            #clf.fit(X_train, y_train)    
-            
-            #testing_A = [X_test[index][0] for index in range(len(X_test))]
-            #testing_B = [X_test[index][1] for index in range(len(X_test))]
-            
-            # array of predicted colors based on the testing coords
-        
-            # find number of errors, against the known values of y_test vs the test_out prediction
-        
-            #return str(best_score) + ", " + str(test_acc)
-        
-            #plt.figure()
-            #plt.scatter(testing_A, testing_B, c = test_out)
-            #plt.show()
-            #plt.clf()
-            
-            
+                    
         def Log_Regress():
             C = [0.1, 0.5, 1, 5, 10, 50, 100]
             
@@ -195,7 +183,9 @@ def run_main():
             
             grid = GridSearchCV(LogisticRegression(solver = 'lbfgs'), param_grid = params)
             
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/logistic.png")
+            log_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            
+            return log_result
         
         def KNN():
             n_neighbors = [x for x in range(1, 51)]
@@ -205,7 +195,8 @@ def run_main():
             
             grid = GridSearchCV(KNeighborsClassifier(), param_grid = params)
             
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/KNN.png")        
+            KNN_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            return KNN_result
         
         def Dec_Tree():
             
@@ -215,7 +206,8 @@ def run_main():
             params = dict(max_depth = max_depth, min_samples_split = min_samples_split)
             
             grid = GridSearchCV(DecisionTreeClassifier(), param_grid = params)
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/decision_tree.png")
+            decTree_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            return decTree_result
         
         def Rndm_Forest():
         
@@ -226,38 +218,30 @@ def run_main():
             
             grid = GridSearchCV(RandomForestClassifier(), param_grid = params)
             
-            return train_classifier(grid, X_train, y_train, X_test, y_test, "/random_forest.png")
+            rndmForest_result = train_classifier(grid, X_train, y_train, X_test, y_test)
+            return rndmForest_result
         
-        final_result = RBF_Kernel()
-        #print(final_result)
+        final_result = None
+        
+        if method == 'Linear':
+            final_result = Lin_Kernel()
+        if method == 'Polynomial':
+            final_result = Poly_Kernel()
+        if method == 'RBF':
+            final_result = RBF_Kernel()
+        if method == 'Log Regression':
+            final_result = Log_Regress()
+        if method == 'KNN':
+            final_result = KNN()
+        if method == 'Tree':
+            final_result = Dec_Tree()
+        if method == 'Forest':
+            final_result = Rndm_Forest()
+            
         return final_result
-    """
-    method1 = Lin_Kernel()
-    #print(method1)
-    method2 = Poly_Kernel()
-    #print(method2)
-    method3 = RBF_Kernel()
-    #print(method3)
-    method4 = Log_Regress()
-    #print(method4)
-    method5 = KNN()
-    #print(method5)
-    method6 = Dec_Tree()
-    #print(method6)
-    method7 = Rndm_Forest()
-    """
-    return C_test()
-    #print(method7)
-    #with open("output3.csv", "w+") as file:
-    #    file.write("svm_linear, " + method1 +"\n")
-    #    file.write("svm_polynomial, " + method2 + "\n")
-    #    file.write("svm_rbf, " + method3 + "\n")
-    #    file.write("logistic, " + method4 + "\n")
-    #    file.write("knn, " + method5 + "\n")
-    #    file.write("decision_tree, " + method6 + "\n")
-    #    file.write("random_forest, " + method7 + "\n")
-    #
-    #file.close()
+
+    return C_test(method)
+
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -265,11 +249,11 @@ def index():
 
 @app.route("/get_model/", methods=["POST", "GET"])
 def get_model():
-    data = request.args.get('myData', '')
-    print(data)
-    results = run_main()
+    method = request.args.get('runMethod', '')
+    #print(data)
+    results = run_main(method)
     final_data = {"test_data" : results['test_data'].tolist(), 'result' : results['result'].tolist()}
-    print(final_data)
+    #print(final_data)
     return jsonify(final_data)
 
 @app.context_processor

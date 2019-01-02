@@ -1,4 +1,10 @@
 canvas {
-  width: 80vw !important;
-  height: 40vw !important;
+  width: 57vmin !important;
+  height: 50vmin !important;
+  display: inline !important;
+  margin: 20px 20px;
+}
+.choose-method {
+  margin-top: 20px;
+  margin-bottom: 10px;
 }

@@ -125,7 +125,7 @@ def run_main(method):
         testing_A = [X_test[index][0] for index in range(len(X_test))]
         testing_B = [X_test[index][1] for index in range(len(X_test))]
         
-        if method == 'rawSampleData':
+        if method == 'Sample Data':
             return { 'test_data': coords, 'result': colors }
         #show map for the cross validated training set
         #show_map(training_A, training_B, y_train, "/cross_validation.png")
@@ -258,7 +258,10 @@ def get_model():
     method = request.args.get('runMethod', '')
     #print(data)
     results = run_main(method)
-    final_data = {"test_data" : results['test_data'].tolist(), 'result' : results['result'].tolist()}
+    final_data = {"test_data" : results.get('test_data').tolist(), 
+                  'result' : results.get('result').tolist(), 
+                  'score' : results.get('score'),
+                  'params' : results.get('params')}
     #print(final_data)
     return jsonify(final_data)
 

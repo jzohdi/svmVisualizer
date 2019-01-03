@@ -54,16 +54,41 @@
                     <option value="Tree">Decision Tree</option>
                     <option value="Forest">Random Forest</option>
             </select>
-            <button onClick='runMethod()'>Run</button>
-            <p id="run-message"></p>
+            <button onClick='runMethod("myChart")'>Run</button>
+            <p id="myChart-message"></p>
           </div>
           <canvas id="myChart" width="200" height="200"></canvas>
         </div>
         <div class='col-md-6'>
-          <h3>Sample Data</h3>
+          <div class='choose-method'>
+            Data to use:  
+            <select id='select-data'>
+              <option>Sample Data</option>
+              <option>Manual Data</option>
+            </select>
+            <button onClick='runData()'>Run</button>
+          </div>
           <canvas id="sampleData" width="200" height="200"></canvas>
         </div>
-      </div>  
+      </div>
+      <div class="row">
+        <div class='col-xs-6 col-sm-4'>
+          <h3>Manul Data: </h3>
+            <p>( comma separated(no spaces) or paste from excel )</p>
+          <table id='manual-table'>
+            <tr>
+              <th> X </th>
+              <th> Y </th>
+              <th> Label </th>
+            </tr>
+          </table>
+          <textarea id='manual-data' class='manual-table-textarea'></textarea>
+      </div> 
+      <div class='col-xs-6 col-sm-4'>
+        <h3>Example Input: </h3>
+          <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='excelExample.png')}}" />
+          <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='commaExample.png')}}" />
+      </div>
     </div>
   </body>
   <footer></footer>

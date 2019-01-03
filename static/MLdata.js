@@ -1,13 +1,15 @@
 var waiting = false;
 var myChartCreated = false;
 var defaultAnimation = "easeInQuint";
-
+var CURRENT_DATA = [];
 const printf = array_of_values => {
   array_of_values.forEach(value => {
     console.log(value);
   });
 };
-
+const string = data => {
+  return JSON.stringify(data);
+};
 const representData = [
   { color: "rgb(255, 99, 132)", label: "Classification 1" },
   { color: "rgb(0, 124, 249)", label: "Classification 2" }
@@ -49,20 +51,23 @@ const parseData = data_set => {
 };
 const cacheData = {};
 
-const runMethod = () => {
+const runMethod = chartId => {
   if (!waiting) {
     const selectedText = $("#select-method :selected").text(); // The text content of the selected option
     const selectedVal = $("#select-method").val();
     if (cacheData.hasOwnProperty(selectedVal)) {
-      createScatter(cacheData[selectedVal], "myChart");
+      createScatter(cacheData[selectedVal].plot, chartId);
+      $("#" + chartId + "-message").html(
+        "Best Params: " + string(cacheData[selectedVal].params)
+      );
     } else {
-      showModel(selectedVal, "myChart");
+      showModel(selectedVal, chartId);
     }
   }
 };
 const showModel = (SVMmethod, chartId) => {
   waiting = true;
-  $("#run-message").html("processing...");
+  $("#" + chartId + "-message").html("processing...");
   $.ajax({
     type: "GET",
     url: "/get_model/",
@@ -71,12 +76,23 @@ const showModel = (SVMmethod, chartId) => {
       runMethod: SVMmethod
     },
     success: function(data) {
+      const bestParams = data["params"];
+      delete data["params"];
+      const bestScore = data["score"];
+      delete data["score"];
+
       dataSet = parseData(data);
-      cacheData[SVMmethod] = dataSet;
+
+      cacheData[SVMmethod] = {
+        plot: dataSet,
+        score: bestScore,
+        params: bestParams
+      };
+
       createScatter(dataSet, chartId);
       waiting = false;
       console.log("method call successful");
-      $("#run-message").html("Done.");
+      $("#" + chartId + "-message").html("Best Params: " + string(bestParams));
     },
     error: function(jqXHR, textStatus, errorThrown) {
       alert(errorThrown);
@@ -126,24 +142,59 @@ const createScatter = (dataSet, targetCanvas) => {
   }
 };
 
-const sampleData = [
-  {
-    backgroundColor: "rgb(255, 0, 0)",
-    borderColor: "rgb(255, 0, 0)",
-    label: "scatter1",
-    data: [{ x: 10, y: 2 }, { x: 2, y: 5 }, { x: 1, y: 4 }]
+const runData = () => {
+  const selectedData = $("#select-data :selected").text();
+  if (selectedData === "Sample Data") {
+    const sampleData = cacheData["Sample Data"].plot;
+    createScatter(sampleData, "sampleData");
+  } else if (selectedData === "Manual Data") {
+    const manualData = parseManualData();
+
+    manualData.forEach((row, index) => {
+      manualData[index] = row.map(cell => {
+        return parseFloat(cell);
+      });
+    });
   }
-];
+};
+
+const parseManualData = () => {
+  let final = [];
+  const rawInput = $("#manual-data").val();
+  if (rawInput.includes(",")) {
+    const parsed = rawInput.split("\n");
+    parsed.forEach((row, index) => {
+      parsed[index] = row.split(",");
+    });
+    final = parsed.filter(row => row.length > 2);
+  } else {
+    const parsed = rawInput.split("\n");
+
+    parsed.forEach((row, index) => {
+      parsed[index] = row.split("\t");
+    });
+    final = parsed.filter(row => row.length > 2);
+  }
+  return final;
+};
+// const sampleData = [
+//   {
+//     backgroundColor: "rgb(255, 0, 0)",
+//     borderColor: "rgb(255, 0, 0)",
+//     label: "scatter1",
+//     data: [{ x: 10, y: 2 }, { x: 2, y: 5 }, { x: 1, y: 4 }]
+//   }
+// ];
 // createScatter(sampleData, "myChart");
 
 const initSampleData = () => {
-  showModel("rawSampleData", "sampleData");
+  showModel("Sample Data", "sampleData");
 };
 
 const initMethodChart = () => {
   createScatter([{}], "myChart");
   setTimeout(() => {
-    $("#run-message").empty();
+    $("#myChart-message").empty();
   }, 50);
 };
 

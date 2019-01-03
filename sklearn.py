@@ -51,15 +51,19 @@ def show_map(A, B, colors, filename):
     plt.clf()
     
 def train_classifier(grid, X_train, y_train, X_test, y_test):
-    grid.fit(X_train, y_train)
+    grid.fit(coords, colors)
+    #print(coords, colors)
+    best_score = grid.best_score_
+    best_params = grid.best_params_
     
-    #best_score = grid.best_score_
-    test_out = grid.predict(X_test)
+    test_out = grid.predict(full_map)
+    #print('map length : ', len(full_map))
+    #print('test out length :', len(test_out))
     #full_map_test = grid.predict(full_map_coordinates)
     #show_map(full_map_X, full_map_Y, full_map_test, filename)
     
     #print(test_out)
-    return { 'test_data': X_test, 'result': test_out }
+    return { 'test_data': full_map, 'result': test_out, 'params' : best_params, 'score' : best_score }
     """
     num_errors = 0
     
@@ -93,12 +97,14 @@ full_map_coordinates = []
 
 for x in range(0, 40):
     x_coord = x/10
-for y in range(0, 40):
-    y_coord = y/10
-    full_map_X.append(x_coord)
-    full_map_Y.append(y_coord)
-    full_map_coordinates.append([x_coord, y_coord])
+    for y in range(0, 40):
+        y_coord = y/10
+        full_map_X.append(x_coord)
+        full_map_Y.append(y_coord)
+        full_map_coordinates.append([x_coord, y_coord])
     
+full_map = np.array(full_map_coordinates)    
+
 def run_main(method):
      
     def C_test(method):
@@ -137,7 +143,7 @@ def run_main(method):
             #def linear_test():
             
             sv = SVC(kernel = "linear")
-            grid = GridSearchCV(sv, params)
+            grid = GridSearchCV(sv, params, cv=5)
             
             linear_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             
@@ -153,7 +159,7 @@ def run_main(method):
             
             params = dict(C = C_vals, degree = degree, gamma = gamma)
             
-            grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params)
+            grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params, cv=5)
             
             poly_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             
@@ -169,7 +175,7 @@ def run_main(method):
             
             params = dict(C = C_vals, gamma = gamma)
             
-            grid = GridSearchCV(SVC(), param_grid = params)
+            grid = GridSearchCV(SVC(), param_grid = params, cv=5)
             
             #print(grid.cv_results_)                
             rbf_result = train_classifier(grid, X_train, y_train, X_test, y_test)
@@ -181,7 +187,7 @@ def run_main(method):
             
             params = dict(C = C)
             
-            grid = GridSearchCV(LogisticRegression(solver = 'lbfgs'), param_grid = params)
+            grid = GridSearchCV(LogisticRegression(solver = 'lbfgs'), param_grid = params, cv=5)
             
             log_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             
@@ -193,7 +199,7 @@ def run_main(method):
             #print(n_neighbors)
             params = dict(n_neighbors = n_neighbors, leaf_size = leaf_size)
             
-            grid = GridSearchCV(KNeighborsClassifier(), param_grid = params)
+            grid = GridSearchCV(KNeighborsClassifier(), param_grid = params, cv=5)
             
             KNN_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             return KNN_result
@@ -205,7 +211,7 @@ def run_main(method):
             
             params = dict(max_depth = max_depth, min_samples_split = min_samples_split)
             
-            grid = GridSearchCV(DecisionTreeClassifier(), param_grid = params)
+            grid = GridSearchCV(DecisionTreeClassifier(), param_grid = params, cv=5)
             decTree_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             return decTree_result
         
@@ -216,7 +222,7 @@ def run_main(method):
         
             params = dict(max_depth = max_depth, min_samples_split = min_samples_split)
             
-            grid = GridSearchCV(RandomForestClassifier(), param_grid = params)
+            grid = GridSearchCV(RandomForestClassifier(n_estimators = 100), param_grid = params, cv=5)
             
             rndmForest_result = train_classifier(grid, X_train, y_train, X_test, y_test)
             return rndmForest_result

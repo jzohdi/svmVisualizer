@@ -28,7 +28,7 @@
   {{
     JSGlue.include()
   }}
-<title>{% block title %} RBF visualizer {% endblock %}</title>
+<title>{% block title %} SVM Visualizer {% endblock %}</title>
 <script>
   Flask.url_for("index");
 </script>
@@ -37,8 +37,12 @@
   {% block main %}
   <body>
     <div class='container'>
+      <div class="row"><div class="col-xs-12">
+        <h2>Support Vector Machine Visualizer:
+        </h2><p>using scikit-learn python library</p>
+      </div></div>
       <div class="row">
-        <div class="col-sm-6">
+        <div class="col-md-6">
           <div class='choose-method'>
             Choose Method :
             <select id="select-method">
@@ -51,10 +55,11 @@
                     <option value="Forest">Random Forest</option>
             </select>
             <button onClick='runMethod()'>Run</button>
+            <p id="run-message"></p>
           </div>
           <canvas id="myChart" width="200" height="200"></canvas>
         </div>
-        <div class='col-sm-6'>
+        <div class='col-md-6'>
           <h3>Sample Data</h3>
           <canvas id="sampleData" width="200" height="200"></canvas>
         </div>

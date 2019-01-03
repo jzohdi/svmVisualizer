@@ -1,3 +1,7 @@
+var waiting = false;
+var myChartCreated = false;
+var defaultAnimation = "easeInQuint";
+
 const printf = array_of_values => {
   array_of_values.forEach(value => {
     console.log(value);
@@ -43,12 +47,22 @@ const parseData = data_set => {
   });
   return finalData;
 };
+const cacheData = {};
+
 const runMethod = () => {
-  const selectedText = $("#select-method :selected").text(); // The text content of the selected option
-  const selectedVal = $("#select-method").val();
-  showModel(selectedVal, "myChart");
+  if (!waiting) {
+    const selectedText = $("#select-method :selected").text(); // The text content of the selected option
+    const selectedVal = $("#select-method").val();
+    if (cacheData.hasOwnProperty(selectedVal)) {
+      createScatter(cacheData[selectedVal], "myChart");
+    } else {
+      showModel(selectedVal, "myChart");
+    }
+  }
 };
 const showModel = (SVMmethod, chartId) => {
+  waiting = true;
+  $("#run-message").html("processing...");
   $.ajax({
     type: "GET",
     url: "/get_model/",
@@ -58,46 +72,58 @@ const showModel = (SVMmethod, chartId) => {
     },
     success: function(data) {
       dataSet = parseData(data);
+      cacheData[SVMmethod] = dataSet;
       createScatter(dataSet, chartId);
+      waiting = false;
+      console.log("method call successful");
+      $("#run-message").html("Done.");
     },
     error: function(jqXHR, textStatus, errorThrown) {
       alert(errorThrown);
     }
   });
 };
-
+// let progress = { value: 0 };
+const charts = {};
 const createScatter = (dataSet, targetCanvas) => {
-  const ctx = document.getElementById(targetCanvas).getContext("2d");
-  const scatterChart = new Chart(ctx, {
-    type: "scatter",
-    data: {
-      datasets: dataSet
-    },
-
-    options: {
-      animation: {
-        duration: 1000,
-        easing: "linear"
+  if (charts.hasOwnProperty(targetCanvas)) {
+    const thisScatterChart = charts[targetCanvas];
+    thisScatterChart.data.datasets = dataSet;
+    thisScatterChart.update();
+  } else {
+    const ctx = document.getElementById(targetCanvas).getContext("2d");
+    const scatterChart = new Chart(ctx, {
+      type: "scatter",
+      data: {
+        datasets: dataSet
       },
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        xAxes: [
-          {
-            type: "linear",
-            position: "bottom"
-          }
-        ],
-        yAxes: [
-          {
-            ticks: {
-              beginAtZero: true
+
+      options: {
+        animation: {
+          duration: 1000,
+          easing: defaultAnimation
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          xAxes: [
+            {
+              type: "linear",
+              position: "bottom"
             }
-          }
-        ]
+          ],
+          yAxes: [
+            {
+              ticks: {
+                beginAtZero: true
+              }
+            }
+          ]
+        }
       }
-    }
-  });
+    });
+    charts[targetCanvas] = scatterChart;
+  }
 };
 
 const sampleData = [
@@ -116,6 +142,9 @@ const initSampleData = () => {
 
 const initMethodChart = () => {
   createScatter([{}], "myChart");
+  setTimeout(() => {
+    $("#run-message").empty();
+  }, 50);
 };
 
 initSampleData();

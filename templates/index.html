@@ -43,6 +43,14 @@
           <p>using scikit-learn python library</p>
         </div>
       </div>
+      <div class='row about-section1'>
+          Support vector machines (SVMs) are a set of supervised learning methods used for classification, regression and outliers detection.
+          SVC and NuSVC are similar methods, but accept slightly different sets of parameters and have different mathematical formulations. <br/>
+          On the other hand, LinearSVC is another implementation of Support Vector Classification for the case of a linear kernel.
+          <p style='margin-top:20px;'> - All methods use scikit-learn GridSearchCV() with a range of parameters to iterate and 
+            return best scoring hits.
+          </p>
+      </div>
       <div class="row header-text2">
         <div class="col-sm-8 col-sm-offset-2">
           <p>First choose which data to use, and click Run</p>
@@ -82,14 +90,6 @@
         </div>
       </div>
     </div>
-    <div class='container-fluid about-section1'>
-        Support vector machines (SVMs) are a set of supervised learning methods used for classification, regression and outliers detection.
-        SVC and NuSVC are similar methods, but accept slightly different sets of parameters and have different mathematical formulations. <br/>
-        On the other hand, LinearSVC is another implementation of Support Vector Classification for the case of a linear kernel.
-        <p style='margin-top:20px;'> - All methods use scikit-learn GridSearchCV() with a range of parameters to iterate and 
-          return best scoring hits.
-        </p>
-    </div>
     <div class="container">
       <div class="row">
         <div class='col-xs-6 col-sm-4'>
@@ -118,6 +118,26 @@
           <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='commaExample.png')}}" />
       </div>
     </div>
+  </div>
+  <div class="container-fluid">
+    <div class="row about-section2">
+      <div class="col-xs-12">
+        <h3>Example Code: </h3>
+        <p>def Poly_Kernel(X_data, Y_data, full_map, low_cv = 1):<br/>
+          <div class='code-body'>
+            C_vals = [0.1, 1, 3]<br/>
+            degree = [4, 5, 6]<br/>
+            gamma = [0.1, 0.5]<br/>
+            <br/>
+            params = dict(C = C_vals, degree = degree, gamma = gamma)<br/>
+            <br/>
+            grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params, cv=2 )<br/>
+            poly_result = train_classifier(grid, X_Y_data, label_data, full_map)</p>
+          </div>
+        </div>
+    </div>
+  </div>
+  
   </body>
   <footer></footer>
   <script src="{{ url_for('static', filename='MLdata.js') }}"></script>

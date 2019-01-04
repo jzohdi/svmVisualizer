@@ -41,7 +41,7 @@ canvas {
 .header-text {
   padding: 20px;
   color: white;
-  background-color: rgb(0, 124, 249);
+  background-color: rgb(2, 70, 138);
 }
 .header-text2 {
   padding-top: 20px;
@@ -52,6 +52,14 @@ canvas {
   text-align: center;
   padding-top: 20px;
   padding-bottom: 20px;
-  background-color: rgb(2, 70, 138);
+  background-color: rgb(0, 124, 249);
   color: white;
+}
+.about-section2 {
+  background-color: rgb(50, 10, 150);
+  color: white;
+  padding-bottom: 50px;
+}
+.code-body {
+  margin-left: 20px;
 }

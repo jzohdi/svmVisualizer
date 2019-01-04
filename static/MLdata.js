@@ -13,7 +13,9 @@ const string = data => {
 };
 const representData = [
   { color: "rgb(255, 99, 132)", label: "Classification 1" },
-  { color: "rgb(0, 124, 249)", label: "Classification 2" }
+  { color: "rgb(0, 124, 249)", label: "Classification 2" },
+  { color: "rgb(25, 150, 100)", label: "Classification 3" },
+  { color: "rgb(93, 1, 150)", label: "Classification 4" }
 ];
 
 const createNewDataObject = (newValue, newIndex) => {
@@ -157,7 +159,7 @@ const runData = () => {
 
     manualData.forEach((row, index) => {
       manualData[index] = row.map((cell, index) => {
-        if (index == 2) {
+        if (index == row.length - 1) {
           return cell.replace(/[\s+.*+?^${}()|[\]\\]/g, "");
         } else {
           return parseFloat(cell.replace(/[\s+*+?^${}()|[\]\\]/g, ""));

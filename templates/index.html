@@ -36,11 +36,21 @@
   {% endblock %}
   {% block main %}
   <body>
-    <div class='container'>
-      <div class="row"><div class="col-xs-12">
-        <h2>Support Vector Machine Visualizer:
-        </h2><p>using scikit-learn python library</p>
-      </div></div>
+    <div class='container-fluid'>
+      <div class="row header-text">
+        <div class="col-xs-12">
+          <h2>2D Support Vector Machine Visualizer: </h2>
+          <p>using scikit-learn python library</p>
+        </div>
+      </div>
+      <div class="row header-text2">
+        <div class="col-sm-8 col-sm-offset-2">
+          <p>First choose which data to use, and click Run</p>
+          <p>Next select SVM method</p>
+        </div>
+      </div>
+    </div>
+    <div class="container">
       <div class="row">
         <div class="col-md-6">
           <div class='choose-method'>
@@ -71,10 +81,20 @@
           <canvas id="sampleData" width="200" height="200"></canvas>
         </div>
       </div>
+    </div>
+    <div class='container-fluid about-section1'>
+        Support vector machines (SVMs) are a set of supervised learning methods used for classification, regression and outliers detection.
+        SVC and NuSVC are similar methods, but accept slightly different sets of parameters and have different mathematical formulations. <br/>
+        On the other hand, LinearSVC is another implementation of Support Vector Classification for the case of a linear kernel.
+        <p style='margin-top:20px;'> - All methods use scikit-learn GridSearchCV() with a range of parameters to iterate and 
+          return best scoring hits.
+        </p>
+    </div>
+    <div class="container">
       <div class="row">
         <div class='col-xs-6 col-sm-4'>
           <h3>Manul Data: </h3>
-            <p>( comma separated(no spaces) or paste from excel )</p>
+            <p>( comma separated or paste from excel )</p>
           <table id='manual-table'>
             <tr>
               <th> X </th>
@@ -82,7 +102,14 @@
               <th> Label </th>
             </tr>
           </table>
-          <textarea id='manual-data' class='manual-table-textarea'></textarea>
+          <textarea id='manual-data' class='manual-table-textarea'>1, 3, 1
+2, 2, 1
+2, 1, 1
+3, 4, 1
+5, 6, 0
+4, 5, 0
+7, 5, 0
+6, 4, 0</textarea>
       </div> 
       <div class='col-xs-6 col-sm-4'>
         <h3>Example Input: </h3>

@@ -156,7 +156,10 @@ const runData = () => {
     createScatter(sampleData, "sampleData");
   } else if (selectedData === "Manual Data") {
     const manualData = parseManualData();
-
+    if (manualData[0].length > 3) {
+      $("#manual-data-error").html("please enter 2 dimensional data");
+      return;
+    }
     manualData.forEach((row, index) => {
       manualData[index] = row.map((cell, index) => {
         if (index == row.length - 1) {

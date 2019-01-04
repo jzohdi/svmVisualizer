@@ -233,6 +233,7 @@ def Dec_Tree(X_data, Y_data, full_map, low_cv = 1, length = 51):
     params = dict(max_depth = max_depth, min_samples_split = min_samples_split)
     
     grid = GridSearchCV(DecisionTreeClassifier(), param_grid = params, cv=low_cv )
+    
     decTree_result = train_classifier(grid, X_data, Y_data, full_map)
     return decTree_result
 

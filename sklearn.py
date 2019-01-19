@@ -12,7 +12,6 @@ Created on Sun Aug  5 14:58:57 2018
 """
 
 import pylab as plt
-from sklearn import svm
 #from random import random, randint
 from sklearn.linear_model import LogisticRegression
 #from sklearn.model_selection import train_test_split
@@ -22,8 +21,8 @@ from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
+#from sklearn.gaussian_process import GaussianProcessClassifier
+#from sklearn.gaussian_process.kernels import RBF
 from sklearn.svm import SVC
 import numpy as np
 import os
@@ -355,7 +354,7 @@ def shutdown_server():
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
-
+       
 @app.route('/shutdown', methods=['POST', 'GET'])
 def shutdown():
     shutdown_server()

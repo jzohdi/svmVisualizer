@@ -18,36 +18,74 @@ const representData = [
   { color: "rgb(93, 1, 150)", label: "Classification 4" }
 ];
 
-const createNewDataObject = (newValue, newIndex) => {
+const createNewDataObject = (newValue, newIndex, dimensions) => {
   newObj = {};
-  newObj.backgroundColor = representData[newIndex].color;
-  newObj.borderColor = representData[newIndex].color;
-  newObj.label = representData[newIndex].label;
-  newObj.data = [];
-  return newObj;
+
+  newObj.x = [];
+  newObj.y = [];
+  newObj.mode = "markers";
+  if (dimensions === 2) {
+    newObj.type = "scatter";
+    newObj.marker = { size: 6, color: representData[newIndex].color };
+    newObj.name = representData[newIndex].label;
+    return newObj;
+  } else {
+    newObj.type = "scatter3d";
+    newObj.z = [];
+    newObj.marker = {
+      size: 6,
+      color: representData[newIndex].color,
+      symbol: "circle",
+      opacity: 0.8
+    };
+    newObj.name = representData[newIndex].label;
+    return newObj;
+  }
 };
 
-const parseData = data_set => {
+const parse2dData = data_set => {
   const classes = {};
   const finalData = [];
   data_set.result.forEach((value, index) => {
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
-      newDataObject = createNewDataObject(value, newIndex);
+      newDataObject = createNewDataObject(value, newIndex, 2);
       classes[value] = newIndex;
-      const point = {
-        x: data_set.test_data[index][0],
-        y: data_set.test_data[index][1]
-      };
-      newDataObject.data.push(point);
+
+      newDataObject.x.push(data_set.test_data[index][0]);
+      newDataObject.y.push(data_set.test_data[index][1]);
+
       finalData.push(newDataObject);
     } else {
       const indexInFinalData = classes[value];
-      const point = {
-        x: data_set.test_data[index][0],
-        y: data_set.test_data[index][1]
-      };
-      finalData[indexInFinalData].data.push(point);
+
+      finalData[indexInFinalData].x.push(data_set.test_data[index][0]);
+      finalData[indexInFinalData].y.push(data_set.test_data[index][1]);
+    }
+  });
+  return finalData;
+};
+
+const parse3dData = data_set => {
+  const classes = {};
+  const finalData = [];
+  data_set.result.forEach((value, index) => {
+    if (!classes.hasOwnProperty(value)) {
+      const newIndex = Object.keys(classes).length;
+      newDataObject = createNewDataObject(value, newIndex, 3);
+      classes[value] = newIndex;
+
+      newDataObject.x.push(data_set.test_data[index][0]);
+      newDataObject.y.push(data_set.test_data[index][1]);
+      newDataObject.z.push(data_set.test_data[index][2]);
+
+      finalData.push(newDataObject);
+    } else {
+      const indexInFinalData = classes[value];
+
+      finalData[indexInFinalData].x.push(data_set.test_data[index][0]);
+      finalData[indexInFinalData].y.push(data_set.test_data[index][1]);
+      finalData[indexInFinalData].z.push(data_set.test_data[index][2]);
     }
   });
   return finalData;
@@ -85,8 +123,12 @@ const showModel = (SVMmethod, chartId) => {
       delete data["params"];
       const bestScore = data["score"];
       delete data["score"];
-
-      dataSet = parseData(data);
+      if (data.test_data[0].length === 2) {
+        dataSet = parse2dData(data);
+      }
+      if (data.test_data[0].length === 3) {
+        dataSet = parse3dData(data);
+      }
       if (CURRENT_DATA === "Sample") {
         cacheData[SVMmethod] = {
           plot: dataSet,
@@ -107,45 +149,20 @@ const showModel = (SVMmethod, chartId) => {
 };
 // let progress = { value: 0 };
 const charts = {};
-const createScatter = (dataSet, targetCanvas) => {
-  if (charts.hasOwnProperty(targetCanvas)) {
-    const thisScatterChart = charts[targetCanvas];
-    thisScatterChart.data.datasets = dataSet;
-    thisScatterChart.update();
-  } else {
-    const ctx = document.getElementById(targetCanvas).getContext("2d");
-    const scatterChart = new Chart(ctx, {
-      type: "scatter",
-      data: {
-        datasets: dataSet
-      },
-
-      options: {
-        animation: {
-          duration: 1000,
-          easing: defaultAnimation
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          xAxes: [
-            {
-              type: "linear",
-              position: "bottom"
-            }
-          ],
-          yAxes: [
-            {
-              ticks: {
-                beginAtZero: true
-              }
-            }
-          ]
-        }
-      }
-    });
-    charts[targetCanvas] = scatterChart;
+const layout = {
+  title: "",
+  autosize: true,
+  showlegend: true,
+  width: 600,
+  height: 600,
+  legend: {
+    x: 0.3,
+    y: 1.1
   }
+};
+
+const createScatter = (dataSet, targetCanvas) => {
+  Plotly.newPlot(targetCanvas, dataSet, layout);
 };
 
 const runData = () => {
@@ -156,8 +173,9 @@ const runData = () => {
     createScatter(sampleData, "sampleData");
   } else if (selectedData === "Manual Data") {
     const manualData = parseManualData();
-    if (manualData[0].length > 3) {
-      $("#manual-data-error").html("please enter 2 dimensional data");
+
+    if (!(manualData[0].length == 3 || manualData[0].length == 4)) {
+      $("#manual-data-error").html("please enter 2 or 3 dimensional data");
       return;
     }
     manualData.forEach((row, index) => {
@@ -171,37 +189,68 @@ const runData = () => {
     });
 
     CURRENT_DATA = manualData;
-    const transformedData = transformToObject(manualData);
-    const parsedForChart = parseData(transformedData);
-    createScatter(parsedForChart, "sampleData");
+    if (manualData[0].length === 3) {
+      const transformedData = transform2dData(manualData);
+      const parsedForChart = parse2dData(transformedData);
+      createScatter(parsedForChart, "sampleData");
+    } else {
+      const transformedData = transform3dData(manualData);
+      const parsedForChart = parse3dData(transformedData);
+      createScatter(parsedForChart, "sampleData");
+    }
   }
+};
+
+const getAverageDimensions = twoDArray => {
+  let average = twoDArray[0].length;
+  twoDArray.forEach(row => {
+    average += row.length;
+    average /= 2;
+  });
+  const finalAvg = Math.round(average);
+
+  return finalAvg;
 };
 
 const parseManualData = () => {
   let final = [];
   const rawInput = $("#manual-data").val();
+
+  const parsed = rawInput.split("\n");
+
   if (rawInput.includes(",")) {
-    const parsed = rawInput.split("\n");
     parsed.forEach((row, index) => {
       parsed[index] = row.split(",");
     });
-    final = parsed.filter(row => row.length > 2);
-  } else {
-    const parsed = rawInput.split("\n");
+    const dimensions = getAverageDimensions(parsed);
 
+    final = parsed.filter(row => row.length == dimensions);
+  } else {
     parsed.forEach((row, index) => {
       parsed[index] = row.split("\t");
     });
-    final = parsed.filter(row => row.length > 2);
+    const dimensions = getAverageDimensions(parsed);
+
+    final = parsed.filter(row => row.length == dimensions);
   }
+
   return final;
 };
 
-const transformToObject = twoDArray => {
+const transform2dData = twoDArray => {
   const newDataObj = { result: [], test_data: [] };
   twoDArray.forEach((value, index) => {
     newDataObj.result.push(value[2]);
     newDataObj.test_data.push([value[0], value[1]]);
+  });
+  return newDataObj;
+};
+
+const transform3dData = twoDarray => {
+  const newDataObj = { result: [], test_data: [] };
+  twoDarray.forEach(value => {
+    newDataObj.result.push(value[3]);
+    newDataObj.test_data.push([value[0], value[1], value[2]]);
   });
   return newDataObj;
 };

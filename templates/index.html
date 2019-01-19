@@ -21,6 +21,11 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+ <!-- Latest compiled and minified plotly.js JavaScript -->
+ <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+ <!-- OR use a specific plotly.js release (e.g. version 1.5.0) -->
+ <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
 
 <script type=text/javascript>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
@@ -75,7 +80,8 @@
             <button onClick='runMethod("myChart")'>Run</button>
             <p id="myChart-message"></p>
           </div>
-          <canvas id="myChart" width="200" height="200"></canvas>
+          <!-- <canvas id="myChart" width="200" height="200"></canvas> -->
+          <div id='myChart' style='width: 100%; height: 100%'></div>
         </div>
         <div class='col-md-6'>
           <div class='choose-method'>
@@ -86,7 +92,8 @@
             </select>
             <button onClick='runData()'>Run</button>
           </div>
-          <canvas id="sampleData" width="200" height="200"></canvas>
+          <div id="sampleData" style="width: 100%; height:100%;"></div>
+          {#<!-- <canvas id="sampleData" width="200" height="200"></canvas> -->#}
         </div>
       </div>
     </div>
@@ -141,5 +148,6 @@
   </body>
   <footer></footer>
   <script src="{{ url_for('static', filename='MLdata.js') }}"></script>
+ 
 {% endblock %}
 </html>

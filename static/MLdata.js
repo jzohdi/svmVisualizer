@@ -33,7 +33,7 @@ const createNewDataObject = (newValue, newIndex, dimensions) => {
     newObj.type = "scatter3d";
     newObj.z = [];
     newObj.marker = {
-      size: 6,
+      size: 10,
       color: representData[newIndex].color,
       symbol: "circle",
       opacity: 0.3

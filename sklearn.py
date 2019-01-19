@@ -141,9 +141,9 @@ def set_map(range_vals):
         low_z = min(0, int( range_vals.get('min_z') ))
         high_z = int(range_vals.get('max_z'))
         
-        x_coords = np.linspace(low_x, high_x, 30).tolist()
-        y_coords = np.linspace(low_y, high_y, 30).tolist()
-        z_coords = np.linspace(low_z, high_z, 30).tolist()
+        x_coords = np.linspace(low_x, high_x, 15).tolist()
+        y_coords = np.linspace(low_y, high_y, 15).tolist()
+        z_coords = np.linspace(low_z, high_z, 15).tolist()
         for x_coord in x_coords:
             for y_coord in y_coords:
                 for z_coord in z_coords:

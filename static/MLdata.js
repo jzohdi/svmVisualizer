@@ -36,7 +36,7 @@ const createNewDataObject = (newValue, newIndex, dimensions) => {
       size: 6,
       color: representData[newIndex].color,
       symbol: "circle",
-      opacity: 0.8
+      opacity: 0.3
     };
     newObj.name = representData[newIndex].label;
     return newObj;

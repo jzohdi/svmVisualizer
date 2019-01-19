@@ -130,12 +130,25 @@ def set_map(range_vals):
     low_y = min(0, int(range_vals.get('min_y')))
     high_y = int(range_vals.get('max_x'))
     
-    x_coords = np.linspace(low_x, high_x, 40).tolist()
-    y_coords = np.linspace(low_y, high_y, 40).tolist()
-    for x_coord in x_coords:
-        for y_coord in y_coords:
-            full_map_coordinates.append([x_coord, y_coord])
-    return np.array(full_map_coordinates)
+    if range_vals.get('max_z', None) == None:
+        x_coords = np.linspace(low_x, high_x, 40).tolist()
+        y_coords = np.linspace(low_y, high_y, 40).tolist()
+        for x_coord in x_coords:
+            for y_coord in y_coords:
+                full_map_coordinates.append([x_coord, y_coord])
+        return np.array(full_map_coordinates)
+    else:
+        low_z = min(0, int( range_vals.get('min_z') ))
+        high_z = int(range_vals.get('max_z'))
+        
+        x_coords = np.linspace(low_x, high_x, 30).tolist()
+        y_coords = np.linspace(low_y, high_y, 30).tolist()
+        z_coords = np.linspace(low_z, high_z, 30).tolist()
+        for x_coord in x_coords:
+            for y_coord in y_coords:
+                for z_coord in z_coords:
+                    full_map_coordinates.append([x_coord, y_coord, z_coord])
+        return np.array(full_map_coordinates)
 #    full_map = np.array(full_map_coordinates)
 """
 for x in range(0, 40):
@@ -283,28 +296,53 @@ def run_test(method, X_data, Y_data, low_cv = 1, length = 51, range_vals = 'Samp
 def parse_request(data_Set):
     
     raw_data = json.loads(data_Set)
+    dimensions = len(raw_data[0]) - 1
+    print(dimensions)
+    
     min_x = float("inf")
     max_x = float("-inf")
     min_y = float("inf")
     max_y = float("-inf")
+    min_z = float("inf")
+    max_z = float("-inf")
     
-    for data in raw_data:
-        min_x = min(float(min_x), float(data[0]))
-        max_x = max(float(max_x), float(data[0]))
-        min_y = min(float(min_y), float(data[1]))
-        max_y = max(float(max_y), float(data[1]))
+    if dimensions == 2:
+        for data in raw_data:
+            min_x = min(float(min_x), float(data[0]))
+            max_x = max(float(max_x), float(data[0]))
+            min_y = min(float(min_y), float(data[1]))
+            max_y = max(float(max_y), float(data[1]))
+            
+        x_y = [[float(raw_data[i][0]), float(raw_data[i][1])] for i in range( len(raw_data) )]
         
-    x_y = [[float(raw_data[i][0]), float(raw_data[i][1])] for i in range( len(raw_data) )]
-    
-    labels = [raw_data[i][2] for i in range(len(raw_data))]
-    
-    unique_labels = set(labels)
-    low_count = min([labels.count(label) for label in unique_labels])
-    low_cv = min(5, low_count)
-    
-    range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y}
-    return ( np.array(x_y), np.array(labels), low_cv, range_vals)
-
+        labels = [raw_data[i][2] for i in range(len(raw_data))]
+        
+        unique_labels = set(labels)
+        low_count = min([labels.count(label) for label in unique_labels])
+        low_cv = min(5, low_count)
+        
+        range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y}
+        return ( np.array(x_y), np.array(labels), low_cv, range_vals)
+    if dimensions == 3:
+        for data in raw_data:
+            min_x = min(float(min_x), float(data[0]))
+            max_x = max(float(max_x), float(data[0]))
+            min_y = min(float(min_y), float(data[1]))
+            max_y = max(float(max_y), float(data[1]))
+            min_z = min(float(min_z), float(data[2]))
+            max_z = max(float(max_z), float(data[2]))
+            
+        x_y_z = [[float(raw_data[i][0]), float(raw_data[i][1]), float(raw_data[i][2]) ] for i in range( len(raw_data) ) ]
+        
+        labels = [raw_data[i][3] for i in range( len(raw_data) ) ]
+        
+        unique_labels = set(labels)
+        low_count = min([labels.count(label) for label in unique_labels])
+        low_cv = min(5, low_count)
+        
+        range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y, 'max_z' : max_z, 'min_z' : min_z}
+        return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
+        
 @app.route("/", methods=["POST", "GET"])
 def index():
     return render_template("index.html")
@@ -325,6 +363,7 @@ def get_model():
         X_data = coords
         Y_data = colors
     else:
+        
         (X_data, Y_data, low_cv, vals) = parse_request(data_set)
         length = int(len(Y_data) / 2)
         

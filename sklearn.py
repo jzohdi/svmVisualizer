@@ -74,18 +74,10 @@ def train_classifier(grid, X_train, y_train, full_map, best = True):
     #show_map(full_map_X, full_map_Y, full_map_test, filename)
     
     #print(test_out)
-    return { 'test_data': full_map, 'result': test_out, 'params' : best_params, 'score' : best_score }
-    """
-    num_errors = 0
-    
-    for index in range(len(y_test)):
-        if y_test[index] != test_out[index]:
-            num_errors += 1
-    total_test = len(test_out)
-    test_acc = (total_test - num_errors)/total_test
-    
-    return str(best_score) + ", " + str(test_acc)    
-            """
+    proba = grid.predict_proba(full_map)
+    probability = [ max( x.tolist() ) for x in proba]
+    return { 'test_data': full_map, 'result': test_out, 'confidence' : probability, 'params' : best_params, 'score' : best_score }
+
 data_set = [list(map(float, line.rstrip().split(","))) for line in open("input3.csv")]
 data_length = len(data_set)
 
@@ -103,25 +95,6 @@ coords = np.array([[A[i], B[i]] for i in range(data_length)])
 # full maps will be used to show the full prediction map for the classifiers
 # needs to the be split into X and Y for plt parameters
 
-"""
-k_folds = 5
-C_vals = [0.1, 0.5, 1, 5, 10, 50, 100]
-# get training and testing data, using SSS as index generator
-cv = StratifiedShuffleSplit(n_splits = k_folds, test_size = 0.40)
-"""
-#print(coords)
-"""
-for train_index, test_index in cv.split(coords, colors):
-    X_train, X_test = coords[train_index], coords[test_index]
-    y_train, y_test = colors[train_index], colors[test_index]
-    
-#######################
-training_A = [X_train[index][0] for index in range(len(X_train))]
-training_B = [X_train[index][1] for index in range(len(X_train))]
-
-testing_A = [X_test[index][0] for index in range(len(X_test))]
-testing_B = [X_test[index][1] for index in range(len(X_test))]
-"""
 def set_map(range_vals):
     full_map_coordinates = []
     
@@ -131,8 +104,8 @@ def set_map(range_vals):
     high_y = int(range_vals.get('max_x'))
     
     if range_vals.get('max_z', None) == None:
-        x_coords = np.linspace(low_x, high_x, 40).tolist()
-        y_coords = np.linspace(low_y, high_y, 40).tolist()
+        x_coords = np.linspace(low_x, high_x, 35).tolist()
+        y_coords = np.linspace(low_y, high_y, 35).tolist()
         for x_coord in x_coords:
             for y_coord in y_coords:
                 full_map_coordinates.append([x_coord, y_coord])
@@ -141,26 +114,16 @@ def set_map(range_vals):
         low_z = min(0, int( range_vals.get('min_z') ))
         high_z = int(range_vals.get('max_z'))
         
-        x_coords = np.linspace(low_x, high_x, 15).tolist()
-        y_coords = np.linspace(low_y, high_y, 15).tolist()
-        z_coords = np.linspace(low_z, high_z, 15).tolist()
+        x_coords = np.linspace(low_x, high_x, 10).tolist()
+        y_coords = np.linspace(low_y, high_y, 10).tolist()
+        z_coords = np.linspace(low_z, high_z, 10).tolist()
         for x_coord in x_coords:
             for y_coord in y_coords:
                 for z_coord in z_coords:
                     full_map_coordinates.append([x_coord, y_coord, z_coord])
         return np.array(full_map_coordinates)
 #    full_map = np.array(full_map_coordinates)
-"""
-for x in range(0, 40):
-    x_coord = x/10
-    for y in range(0, 40):
-        y_coord = y/10
-        full_map_X.append(x_coord)
-        full_map_Y.append(y_coord)
-        full_map_coordinates.append([x_coord, y_coord])
-    
-full_map = np.array(full_map_coordinates)    
-"""
+
 set_map(sample_range)
 
 def Lin_Kernel(X_data, Y_data, full_map, low_cv = 1):
@@ -172,7 +135,7 @@ def Lin_Kernel(X_data, Y_data, full_map, low_cv = 1):
     #def linear_test():
     
 #    sv = SVC(kernel = "linear")
-    sv = LinearSVC()   
+    sv = SVC(kernel='linear', probability=True)   
     grid = GridSearchCV(sv, params, cv=low_cv)
     
     linear_result = train_classifier(grid, X_data, Y_data, full_map)
@@ -189,7 +152,7 @@ def Poly_Kernel(X_data, Y_data, full_map, low_cv = 1):
     
     params = dict(C = C_vals, degree = degree, gamma = gamma)
       
-    grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params, cv=2 )
+    grid = GridSearchCV(SVC(kernel = 'poly', probability=True), param_grid = params, cv=2 )
 #    grid = SVC(kernel='poly', gamma=2, C=1, degree=4)   
     poly_result = train_classifier(grid, X_data, Y_data, full_map)
     
@@ -204,7 +167,7 @@ def RBF_Kernel(X_data, Y_data, full_map, low_cv = 1):
     params = dict(C = C_vals, gamma = gamma)
 #    kernel = 1.0 * RBF(1.0)
 #    gpc = GaussianProcessClassifier(kernel=kernel, random_state=0)
-    gpc = SVC()
+    gpc = SVC(probability=True)
     grid = GridSearchCV(gpc, param_grid = params, cv=low_cv )
     
     #print(grid.cv_results_)                
@@ -230,7 +193,7 @@ def KNN(X_data, Y_data, full_map, low_cv = 1, length = 51):
     leaf_size = [int(x*5) for x in range(1, 13)]
     #print(n_neighbors)
     params = dict(n_neighbors = n_neighbors, leaf_size = leaf_size)
-    
+    #probability=True
     grid = GridSearchCV(KNeighborsClassifier(), param_grid = params, cv=low_cv )
     
     KNN_result = train_classifier(grid, X_data, Y_data, full_map)
@@ -297,7 +260,7 @@ def parse_request(data_Set):
     
     raw_data = json.loads(data_Set)
     dimensions = len(raw_data[0]) - 1
-    print(dimensions)
+#    print(dimensions)
     
     min_x = float("inf")
     max_x = float("-inf")
@@ -370,6 +333,7 @@ def get_model():
     results = run_test(method, X_data, Y_data, low_cv, length, vals)
     final_data = {"test_data" : results.get('test_data').tolist(), 
                   'result' : results.get('result').tolist(), 
+                  'confidence' : results.get('confidence'),
                   'score' : results.get('score'),
                   'params' : results.get('params')}
     #print(final_data)

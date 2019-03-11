@@ -3,14 +3,36 @@ var myChartCreated = false;
 var defaultAnimation = "easeInQuint";
 var CURRENT_DATA = "Sample";
 
+const deepCopy = obj => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const printf = array_of_values => {
   array_of_values.forEach(value => {
     console.log(value);
   });
 };
+const mapData = (num, min_One, max_One, min_Out, max_Out) => {
+  return (
+    ((num - min_One) * (max_Out - min_Out)) / (max_One - min_One) + min_Out
+  );
+};
+
 const string = data => {
   return JSON.stringify(data);
 };
+const getMarkerObject = (size, color, confidence, symbol = false) => {
+  const newObj = {
+    size: size,
+    color: color,
+    opacity: confidence ? confidence : 1
+  };
+  if (symbol) {
+    newObj["symbol"] = symbol;
+  }
+  return newObj;
+};
+
 const representData = [
   { color: "rgb(255, 99, 132)", label: "Classification 1" },
   { color: "rgb(0, 124, 249)", label: "Classification 2" },
@@ -18,27 +40,39 @@ const representData = [
   { color: "rgb(93, 1, 150)", label: "Classification 4" }
 ];
 
-const createNewDataObject = (newValue, newIndex, dimensions) => {
+const createNewDataObject = (
+  newValue,
+  newIndex,
+  dimensions,
+  confidence = false
+) => {
   newObj = {};
 
   newObj.x = [];
   newObj.y = [];
+  if (confidence) {
+    newObj.text = ["confidence: " + confidence.toFixed(8)];
+  }
   newObj.mode = "markers";
   if (dimensions === 2) {
     newObj.type = "scatter";
-    newObj.marker = { size: 6, color: representData[newIndex].color };
-    newObj.name = representData[newIndex].label;
+    newObj.marker = getMarkerObject(
+      10,
+      representData[newIndex].color,
+      confidence
+    );
+    // newObj.name = representData[newIndex].label;
     return newObj;
   } else {
     newObj.type = "scatter3d";
     newObj.z = [];
-    newObj.marker = {
-      size: 10,
-      color: representData[newIndex].color,
-      symbol: "circle",
-      opacity: 0.3
-    };
-    newObj.name = representData[newIndex].label;
+    newObj.marker = getMarkerObject(
+      20,
+      representData[newIndex].color,
+      confidence,
+      "circle"
+    );
+    // newObj.name = representData[newIndex].label;
     return newObj;
   }
 };
@@ -46,10 +80,17 @@ const createNewDataObject = (newValue, newIndex, dimensions) => {
 const parse2dData = data_set => {
   const classes = {};
   const finalData = [];
+
   data_set.result.forEach((value, index) => {
+    let confidence = false;
+
+    if (data_set["confidence"] != null) {
+      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 1);
+    }
+
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
-      newDataObject = createNewDataObject(value, newIndex, 2);
+      const newDataObject = createNewDataObject(value, newIndex, 2, confidence);
       classes[value] = newIndex;
 
       newDataObject.x.push(data_set.test_data[index][0]);
@@ -57,12 +98,21 @@ const parse2dData = data_set => {
 
       finalData.push(newDataObject);
     } else {
-      const indexInFinalData = classes[value];
-
-      finalData[indexInFinalData].x.push(data_set.test_data[index][0]);
-      finalData[indexInFinalData].y.push(data_set.test_data[index][1]);
+      const finalIndex = classes[value];
+      const newDataObject = createNewDataObject(
+        value,
+        finalIndex,
+        2,
+        confidence
+      );
+      newDataObject.x.push(data_set.test_data[index][0]);
+      newDataObject.y.push(data_set.test_data[index][1]);
+      finalData.push(newDataObject);
+      // finalData[finalIndex].x.push(data_set.test_data[index][0]);
+      // finalData[finalIndex].y.push(data_set.test_data[index][1]);
     }
   });
+  // console.log(finalData);
   return finalData;
 };
 
@@ -70,9 +120,14 @@ const parse3dData = data_set => {
   const classes = {};
   const finalData = [];
   data_set.result.forEach((value, index) => {
+    let confidence = false;
+    if (data_set["confidence"] != null) {
+      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 0.9);
+    }
+
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
-      newDataObject = createNewDataObject(value, newIndex, 3);
+      newDataObject = createNewDataObject(value, newIndex, 3, confidence);
       classes[value] = newIndex;
 
       newDataObject.x.push(data_set.test_data[index][0]);
@@ -81,11 +136,12 @@ const parse3dData = data_set => {
 
       finalData.push(newDataObject);
     } else {
-      const indexInFinalData = classes[value];
-
-      finalData[indexInFinalData].x.push(data_set.test_data[index][0]);
-      finalData[indexInFinalData].y.push(data_set.test_data[index][1]);
-      finalData[indexInFinalData].z.push(data_set.test_data[index][2]);
+      const finalIndex = classes[value];
+      newDataObject = createNewDataObject(value, finalIndex, 3, confidence);
+      newDataObject.x.push(data_set.test_data[index][0]);
+      newDataObject.y.push(data_set.test_data[index][1]);
+      newDataObject.z.push(data_set.test_data[index][2]);
+      finalData.push(newDataObject);
     }
   });
   return finalData;
@@ -119,6 +175,7 @@ const showModel = (SVMmethod, chartId) => {
       data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
     },
     success: function(data) {
+      // console.log(data["confidence"]);
       const bestParams = data["params"];
       delete data["params"];
       const bestScore = data["score"];
@@ -147,22 +204,53 @@ const showModel = (SVMmethod, chartId) => {
     }
   });
 };
+const getChartWidth = () => {
+  if (window.innerWidth < 1200) {
+    console.log(window.innerWidth);
+    return window.innerWidth * 0.8;
+  } else {
+    return window.innerWidth / 2;
+  }
+};
+// const calculateMargin = () => {
+//   if (window.innerWidth < 2000) {
+//     return window.innerWidth;
+//   } else {
+//     return window.innerWidth / 2;
+//   }
+// };
 // let progress = { value: 0 };
+const calculateDimension = () => {
+  return { d: getChartWidth() };
+};
 const charts = {};
 const layout = {
   title: "",
   autosize: true,
-  showlegend: true,
+  hovermode: "closest",
+  showlegend: false,
   width: 600,
   height: 600,
   legend: {
     x: 0.3,
     y: 1.1
+  },
+  xaxis: {
+    zeroline: false,
+    hoverformat: ".3f"
+  },
+  yaxis: {
+    zeroline: false,
+    hoverformat: ".3r"
   }
 };
 
 const createScatter = (dataSet, targetCanvas) => {
-  Plotly.newPlot(targetCanvas, dataSet, layout);
+  const dimensions = calculateDimension();
+  layout.width = dimensions.d;
+  layout.height = dimensions.d;
+  // layout["margin-left"] = dimensions["margin-left"];
+  Plotly.newPlot(targetCanvas, dataSet, layout, { resonsive: true });
 };
 
 const runData = () => {

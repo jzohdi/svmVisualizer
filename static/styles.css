@@ -14,6 +14,9 @@
     height: 75vmin !important;
   }
 } */
+html {
+  min-width: 700px;
+}
 .choose-method {
   font-size: 15px;
   margin-left: 10%;

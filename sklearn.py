@@ -4,6 +4,7 @@ Created on Sun Aug  5 14:58:57 2018
 
 @author: jake
 """
+from matplotlib import pylab
 import pylab as plt
 #from random import random, randint
 from sklearn.linear_model import LogisticRegression
@@ -309,7 +310,7 @@ def connect_db():
     clientString = settings.get('MONGO_STRING').format(settings.get('MONGO_USER'), settings.get('MONGO_USER_PW'), 'retryWrites=true')
     print(clientString)
     client = MongoClient(clientString)
-    return client
+    return client.test
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -385,7 +386,10 @@ def shutdown():
         return 'Invalid request...'
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    client = MongoClient("mongodb+srv://quote-user:cTrvovlSDwzB60F7ZWwipJNo17t0fq@quotesdata-jkbvr.mongodb.net/test?retryWrites=true")
+    db = client.test
+#    conn = connect_db()
+#    app.run(debug=False)
 #full data_set map
 #show_map(A, B, colors, "/full_data_set.png")
 

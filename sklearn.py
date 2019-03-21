@@ -28,6 +28,7 @@ from helpers import (BeautifulSoup, get, shuffle, threading,
                      time, signal, timedelta, Parser, ProgramKilled, 
                      signal_handler, Job)
 from config import getKeys
+from pymongo import MongoClient
 
 app = Flask(__name__)
 jsglue = JSGlue(app)
@@ -304,7 +305,12 @@ def parse_request(data_Set):
         return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
     
 settings = getKeys()
-   
+def connect_db():
+    clientString = settings.get('MONGO_STRING').format(settings.get('MONGO_USER'), settings.get('MONGO_USER_PW'), 'retryWrites=true')
+    print(clientString)
+    client = MongoClient(clientString)
+    return client
+
 @app.route("/", methods=["POST", "GET"])
 def index():
     return render_template("index.html")
@@ -338,6 +344,9 @@ def get_model():
     #print(final_data)
     return jsonify(final_data)
 
+def parser_new_quotes():
+    pass
+"""
 @app.route('/start_scraper', methods=["GET"])
 def start_scraper():
     DAY_TO_SECONDS = 86400
@@ -346,6 +355,7 @@ def start_scraper():
 @app.route('/stop_scraper', methods=["GET"])
 def stop_quotes():
     pass    
+"""
 @app.context_processor
 def override_url_for():
     return dict(url_for=dated_url_for)

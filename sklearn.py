@@ -4,13 +4,6 @@ Created on Sun Aug  5 14:58:57 2018
 
 @author: jake
 """
-
-"""
-# 
-# Get Data and format
-#
-"""
-
 import pylab as plt
 #from random import random, randint
 from sklearn.linear_model import LogisticRegression
@@ -27,10 +20,14 @@ from sklearn.svm import SVC
 import numpy as np
 import os
 import os.path
-from flask import Flask, request, render_template, url_for, jsonify, redirect
+from flask import Flask, request, render_template, url_for, jsonify, redirect, g
 from flask_jsglue import JSGlue
 from tempfile import mkdtemp
 import json
+from helpers import (BeautifulSoup, get, shuffle, threading, 
+                     time, signal, timedelta, Parser, ProgramKilled, 
+                     signal_handler, Job)
+from config import getKeys
 
 app = Flask(__name__)
 jsglue = JSGlue(app)
@@ -305,7 +302,9 @@ def parse_request(data_Set):
         
         range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y, 'max_z' : max_z, 'min_z' : min_z}
         return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
-        
+    
+settings = getKeys()
+   
 @app.route("/", methods=["POST", "GET"])
 def index():
     return render_template("index.html")
@@ -339,6 +338,14 @@ def get_model():
     #print(final_data)
     return jsonify(final_data)
 
+@app.route('/start_scraper', methods=["GET"])
+def start_scraper():
+    DAY_TO_SECONDS = 86400
+    WAIT_TIME_SECONDS = 60
+
+@app.route('/stop_scraper', methods=["GET"])
+def stop_quotes():
+    pass    
 @app.context_processor
 def override_url_for():
     return dict(url_for=dated_url_for)
@@ -358,10 +365,14 @@ def shutdown_server():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
        
-@app.route('/shutdown', methods=['POST', 'GET'])
+@app.route('/shutdown', methods=['GET'])
 def shutdown():
-    shutdown_server()
-    return 'Server shutting down...'
+    request_pin = request.args.get('pw')
+    if request_pin == settings.get('SHUT_DOWN'):
+        shutdown_server()
+        return 'Server shutting down...'
+    else:
+        return 'Invalid request...'
 
 if __name__ == "__main__":
     app.run(debug=False)

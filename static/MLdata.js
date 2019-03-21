@@ -163,7 +163,7 @@ const runMethod = chartId => {
   }
 };
 const showModel = (SVMmethod, chartId) => {
-  console.log(CURRENT_DATA);
+  // console.log(CURRENT_DATA);
   waiting = true;
   $("#" + chartId + "-message").html("processing...");
   $.ajax({

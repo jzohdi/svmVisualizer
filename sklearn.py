@@ -4,7 +4,6 @@ Created on Sun Aug  5 14:58:57 2018
 
 @author: jake
 """
-from matplotlib import pylab
 import pylab as plt
 #from random import random, randint
 from sklearn.linear_model import LogisticRegression
@@ -306,11 +305,14 @@ def parse_request(data_Set):
         return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
     
 settings = getKeys()
+
 def connect_db():
     clientString = settings.get('MONGO_STRING').format(settings.get('MONGO_USER'), settings.get('MONGO_USER_PW'), 'retryWrites=true')
-    print(clientString)
-    client = MongoClient(clientString)
-    return client.test
+
+    return MongoClient(clientString)
+
+def db_name():
+    return settings.get('DB_NAME')
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -384,11 +386,37 @@ def shutdown():
         return 'Server shutting down...'
     else:
         return 'Invalid request...'
-
+    
+def get_next_Value(collection, sequence_name):
+    sequence = collection.find_one_and_update(
+            {'_id': sequence_name},
+            {'$inc' :{'sequence_value' : 1} })
+    return sequence.get('sequence_value')
+   
 if __name__ == "__main__":
-    client = MongoClient("mongodb+srv://quote-user:cTrvovlSDwzB60F7ZWwipJNo17t0fq@quotesdata-jkbvr.mongodb.net/test?retryWrites=true")
-    db = client.test
-#    conn = connect_db()
+    line1 = None
+    with open('test.txt', 'r') as file:
+        line1 = file.readline()
+        line1 = json.loads(line1)
+        line1['source'] = "Unknown"
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycol = mydb['quotes']
+        line1['_id'] = get_next_Value(mycol, 'quote_id')
+        #results = mycol.find({'author' : line1.get('author')})
+        #print( results.count()  )
+        #for result in results:
+        #    print(result)
+        x = mycol.insert_one(line1)
+        print(x.inserted_id)
+    except Exception as err:
+        print(err)
+    finally:
+        if client:
+            client.close()
 #    app.run(debug=False)
 #full data_set map
 #show_map(A, B, colors, "/full_data_set.png")

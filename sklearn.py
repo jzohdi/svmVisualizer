@@ -394,29 +394,43 @@ def get_next_Value(collection, sequence_name):
     return sequence.get('sequence_value')
    
 if __name__ == "__main__":
-    line1 = None
-    with open('test.txt', 'r') as file:
-        line1 = file.readline()
-        line1 = json.loads(line1)
-        line1['source'] = "Unknown"
+    cached = {}
     client = None
+    lines = None
+    idNum = 0
     try:
         client = connect_db()
         database = db_name()
         mydb = client[database]
         mycol = mydb['quotes']
-        line1['_id'] = get_next_Value(mycol, 'quote_id')
-        #results = mycol.find({'author' : line1.get('author')})
-        #print( results.count()  )
-        #for result in results:
-        #    print(result)
-        x = mycol.insert_one(line1)
-        print(x.inserted_id)
-    except Exception as err:
-        print(err)
+        with open('test.txt', 'r') as file:
+            lines = file.readlines()
+            
+        for line in lines:
+            if line not in cached:
+                try:
+                    parsed_line = json.loads(line)
+                    parsed_line['source'] = "Unknown"
+                    parsed_line['_id'] = get_next_Value(mycol, 'quote_id')
+                    x = mycol.insert_one(parsed_line)
+                    print(x.inserted_id)
+                except Exception:
+                    print("could not parse line to object")
+                cached[line] = True
+            #line['_id'] = get_next_Value(mycol, 'quote_id')
+            #results = mycol.find({'author' : line1.get('author')})
+            #print( results.count()  )
+            #for result in results:
+            #    print(result)
+            #x = mycol.insert_one(line)
+            #print(x.inserted_id)
+        
+    except Exception:
+        print("could not read line")
     finally:
         if client:
             client.close()
+    print(len(cached))
 #    app.run(debug=False)
 #full data_set map
 #show_map(A, B, colors, "/full_data_set.png")

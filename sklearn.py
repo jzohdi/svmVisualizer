@@ -352,7 +352,7 @@ def get_random_quote():
         results = mycol.find({'_id' : random_index})
         new_thread = Thread(target = get_new_quotes, args=(mycol, client), daemon=True)
         new_thread.start()
-        print('hereee')
+#        print('hereee')
         return jsonify(results[0])
     except Exception as err:
         with open('loggedErrors.txt' 'a') as file:
@@ -431,9 +431,18 @@ def shutdown():
         return 'Server shutting down...'
     else:
         return 'Invalid request...'
-    
-if __name__ == "__main__":
+def update_queries(collection, query, new_values):
+    # query must be dict( {'search property' : 'search value'})
+    # new_values is dict {'propert to change' : 'value to set to'}
+    set_values = {'$set' : new_values}
+    num_changed = collection.update_many(query, set_values)
+    return num_changed
 
+if __name__ == "__main__":
+   
+#        results = mycol.find_all({'source' : 'Unkown'})
+#        for result in results:
+#            result 
     app.run(debug=False)
 #full data_set map
 #show_map(A, B, colors, "/full_data_set.png")

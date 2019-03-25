@@ -49,8 +49,8 @@ class Parser:
                 
         if len(self.all_quotes) == 0:
             self.make_request()
-        else:
-            print(self.all_quotes)
+#        else:
+#            print(self.all_quotes)
             
     def scrub_title_and_author(self, text, author):
         title_to_list = self.title.split(" ")
@@ -102,5 +102,4 @@ class Job(threading.Thread):
               print("Program killed: running cleanup code")
               job.stop()
               break
-
 """

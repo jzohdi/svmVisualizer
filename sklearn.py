@@ -5,7 +5,7 @@ Created on Sun Aug  5 14:58:57 2018
 @author: jake
 """
 import pylab as plt
-#from random import random, randint
+from random import randint
 from sklearn.linear_model import LogisticRegression
 #from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -28,6 +28,7 @@ from helpers import (BeautifulSoup, get, shuffle, threading,
                      time, signal, timedelta, Parser, ProgramKilled, 
                      signal_handler, Job)
 from config import getKeys
+from threading import Thread
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -306,13 +307,57 @@ def parse_request(data_Set):
     
 settings = getKeys()
 
+def get_next_Value(collection, sequence_name, value):
+    sequence = collection.find_one_and_update(
+            {'_id': sequence_name},
+            {'$inc' :{'sequence_value' : value} })
+    return sequence.get('sequence_value')
+   
 def connect_db():
     clientString = settings.get('MONGO_STRING').format(settings.get('MONGO_USER'), settings.get('MONGO_USER_PW'), 'retryWrites=true')
-
     return MongoClient(clientString)
 
 def db_name():
     return settings.get('DB_NAME')
+
+def get_new_quotes(collection, client):
+    parser = Parser()
+    parser.make_request()
+    new_quotes = parser.all_quotes
+    try:
+        for quote in new_quotes:
+            quote['_id'] = get_next_Value(collection, 'quote_id', 1)
+            collection.insert_one(quote)
+    except Exception as err:
+        with open('loggedErrors.txt' 'a') as file:
+            file.write(err)
+    finally:
+        if client:
+            client.close()
+"""
+parsed_line['_id'] = get_next_Value(mycol, 'quote_id')
+x = mycol.insert_one(parsed_line)
+print(x.inserted_id)
+"""
+@app.route('/get_quote/random')
+def get_random_quote():
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycol = mydb['quotes']
+        max_index = get_next_Value(mycol, 'quote_id', 0)
+        random_index = randint(0, max_index)
+        results = mycol.find({'_id' : random_index})
+        new_thread = Thread(target = get_new_quotes, args=(mycol, client), daemon=True)
+        new_thread.start()
+        print('hereee')
+        return jsonify(results[0])
+    except Exception as err:
+        with open('loggedErrors.txt' 'a') as file:
+            file.write(err)
+        return jsonify({'error' : 'Something went wrong, sorry'})
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -387,51 +432,9 @@ def shutdown():
     else:
         return 'Invalid request...'
     
-def get_next_Value(collection, sequence_name):
-    sequence = collection.find_one_and_update(
-            {'_id': sequence_name},
-            {'$inc' :{'sequence_value' : 1} })
-    return sequence.get('sequence_value')
-   
 if __name__ == "__main__":
-    cached = {}
-    client = None
-    lines = None
-    idNum = 0
-    try:
-        client = connect_db()
-        database = db_name()
-        mydb = client[database]
-        mycol = mydb['quotes']
-        with open('test.txt', 'r') as file:
-            lines = file.readlines()
-            
-        for line in lines:
-            if line not in cached:
-                try:
-                    parsed_line = json.loads(line)
-                    parsed_line['source'] = "Unknown"
-                    parsed_line['_id'] = get_next_Value(mycol, 'quote_id')
-                    x = mycol.insert_one(parsed_line)
-                    print(x.inserted_id)
-                except Exception:
-                    print("could not parse line to object")
-                cached[line] = True
-            #line['_id'] = get_next_Value(mycol, 'quote_id')
-            #results = mycol.find({'author' : line1.get('author')})
-            #print( results.count()  )
-            #for result in results:
-            #    print(result)
-            #x = mycol.insert_one(line)
-            #print(x.inserted_id)
-        
-    except Exception:
-        print("could not read line")
-    finally:
-        if client:
-            client.close()
-    print(len(cached))
-#    app.run(debug=False)
+
+    app.run(debug=False)
 #full data_set map
 #show_map(A, B, colors, "/full_data_set.png")
 

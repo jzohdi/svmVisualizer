@@ -1,166 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-    {% block head %}
+<html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="https://code.jquery.com/jquery.js"></script>
-    <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
- <!-- Latest compiled and minified plotly.js JavaScript -->
- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
- <!-- OR use a specific plotly.js release (e.g. version 1.5.0) -->
- <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
-
-<script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-  {{
-    JSGlue.include()
-  }}
-<title>{% block title %} SVM Visualizer {% endblock %}</title>
-<script>
-  Flask.url_for("index");
-</script>
+    <meta charset="UTF-8" />
+    <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script>
   </head>
-  {% endblock %}
-  {% block main %}
-  <body>
-    <div class='container-fluid'>
-      <div class="row header-text">
-        <div class="col-xs-12">
-          <h2>2D/3D Support Vector Machine Visualizer: </h2>
-          <p>using scikit-learn python library</p>
-        </div>
-      </div>
-      <div class='row about-section1'>
-          Support vector machines (SVMs) are a set of supervised learning methods used for classification, regression and outliers detection.
-          SVC and NuSVC are similar methods, but accept slightly different sets of parameters and have different mathematical formulations. <br/>
-          On the other hand, LinearSVC is another implementation of Support Vector Classification for the case of a linear kernel.
-          <p style='margin-top:20px;'> - All methods use scikit-learn GridSearchCV() with a range of parameters to iterate and 
-            return best scoring hits.
-          </p>
-      </div>
-      <div class="row header-text2">
-        <div class="col-sm-8 col-sm-offset-2">
-          <p>First choose which data to use, and click Run</p>
-          <p>Next select SVM method</p>
-        </div>
-      </div>
-    </div>
-    <!-- <div class="container"> -->
-      <div class="row">
-        <div style='text-align:center;'class="col-lg-6">
-          <div class='choose-method'>
-            Choose Method :
-            <select id="select-method">
-                    <option value="Linear">Linear Kernel</option>
-                    <option value="Polynomial">Polynomial Kernel</option>
-                    <option value="RBF">RBF Kernel</option>
-                    <option value="Log Regression">Logistic Regression</option>
-                    <option value="KNN">K Nearest Neighbors</option>
-                    <option value="Tree">Decision Tree</option>
-                    <option value="Forest">Random Forest</option>
-            </select>
-            <button onClick='runMethod("myChart")'>Run</button>
-            <p id="myChart-message"></p>
+  <body style="margin:0px">
+    <div id="root"></div>
+    <script type="text/babel">
+      const mainColor = "#E8C1C5";
+      const color2 = "#011638";
+      const styles = {
+        AppBody: {
+          backgroundColor: mainColor,
+          // minHeight: "100vh",
+          padding: "5vh"
+        },
+        MainBody: {
+          backgroundColor: mainColor,
+          minHeight: "90vh",
+          border: "3px solid " + color2
+        },
+        lineStyle: {
+          borderLeft: "4px solid " + color2,
+          height: "10vh",
+          // position: "absolute",
+          // left: "50%",
+          marginLeft: "calc(50% - 2px)"
+        },
+        service: {
+          textAlign: "center"
+        }
+      };
+      const descriptions = { svm: "SVM Visualzier" };
+      function Service(props) {
+        return (
+          <div style={styles.service}>
+            <h4>{props.description}</h4>
           </div>
-          <!-- <canvas id="myChart" width="200" height="200"></canvas> -->
-          <div id='myChart' style='width: 100%; height: 100%'></div>
-        </div>
-        <div style='text-align:center;' class='col-lg-6'>
-          <div class='choose-method'>
-            Data to use:  
-            <select id='select-data'>
-              <option>Sample Data</option>
-              <option>Manual Data</option>
-            </select>
-            <button onClick='runData()'>Run</button>
+        );
+      }
+      function Line() {
+        return (
+          <div>
+            <div style={styles.lineStyle} />
           </div>
-          <div id="sampleData" style="width: 100%; height:100%;"></div>
-          {#<!-- <canvas id="sampleData" width="200" height="200"></canvas> -->#}
-        </div>
-      </div>
-    <!-- </div> -->
-    <div class="container">
-      <div class="row">
-        <div class='col-xs-6 col-sm-4'>
-          <h3>Manul Data: </h3>
-            <p>( comma separated or paste from excel )</p>
-            <p id='manual-data-error'></p>
-          <table id='manual-table'>
-            <tr>
-              <th> X, Y, Z (optional) </th>
-              <th> Label </th>
-            </tr>
-          </table>
-          <textarea id='manual-data' class='manual-table-textarea'>1, 3, 1
-2, 2, 1
-2, 1, 1
-3, 4, 1
-5, 6, 0
-4, 5, 0
-7, 5, 0
-6, 4, 0</textarea>
-      </div> 
-      <div class='col-xs-6 col-sm-4'>
-        <h3>Example Input: </h3>
-          <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='excelExample.png')}}" />
-          <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='commaExample.png')}}" />
-          <textarea rows="15" cols='30'>1, 3, 2, no
-2, 2, 3, no
-2, 1, 1, no
-3, 4, 3, no
-5, 6, 3, yes
-4, 5, 4, yes
-7, 5, 3, yes
-6, 4, 2, yes
-2, 3, 1, yes
-4, 5, 1, yes
-3, 4, 1, yes
-4, 2, 3 ,no
-4, 3, 2, no
-5, 3, 3, no</textarea>
-      </div>
-    </div>
-  </div>
-  <div class="container-fluid">
-    <div class="row about-section2">
-      <div class="col-xs-12">
-        <h3>Example Code: </h3>
-        <p>def Poly_Kernel(X_data, Y_data, full_map, low_cv = 1):<br/>
-          <div class='code-body'>
-            C_vals = [0.1, 1, 3]<br/>
-            degree = [4, 5, 6]<br/>
-            gamma = [0.1, 0.5]<br/>
-            <br/>
-            params = dict(C = C_vals, degree = degree, gamma = gamma)<br/>
-            <br/>
-            grid = GridSearchCV(SVC(kernel = 'poly'), param_grid = params, cv=2 )<br/>
-            poly_result = train_classifier(grid, X_Y_data, label_data, full_map)</p>
-          </div>
-        </div>
-    </div>
-  </div>
-  
+        );
+      }
+      class Services extends React.Component {
+        render() {
+          return (
+            <div>
+              <Line />
+              <Service description={descriptions.svm} />
+            </div>
+          );
+        }
+      }
+      class Main extends React.Component {
+        state = {};
+        render() {
+          return (
+            <div style={styles.MainBody}>
+              <Services />
+            </div>
+          );
+        }
+      }
+      class App extends React.Component {
+        state = {};
+        render() {
+          return (
+            <div style={styles.AppBody}>
+              <Main />
+            </div>
+          );
+        }
+      }
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
   </body>
-  <footer></footer>
-  <script src="{{ url_for('static', filename='MLdata.js') }}"></script>
- 
-{% endblock %}
 </html>

@@ -246,7 +246,7 @@ settings = getKeys()
 
 def quote_not_in_collection(collection, quote, search_term):
     results= collection.find_one({search_term : quote.get(search_term)})
-    print( results )
+    #print( results )
     return not results
 
 def get_next_Value(collection, sequence_name, value):
@@ -336,6 +336,7 @@ def get_random_quote():
         
         generate_database =  mycol.find({'_id' : 'generate_database'})
         if generate_database[0].get('generate'):
+           
             new_thread = Thread(target = get_new_quotes, args=(mycol, client), daemon=True)
             new_thread.start()
             
@@ -395,10 +396,13 @@ def find_source():
     finally:
         if client:
             client.close()
-
-@app.route("/", methods=["POST", "GET"])
+@app.route('/', methods=["GET", "POST"])
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
+
+@app.route("/svm_visualizer", methods=["POST", "GET"])
+def sklearn():
+    return render_template("sklearn.html")
 
 @app.route("/get_model/", methods=["POST", "GET"])
 def get_model():

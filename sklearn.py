@@ -17,16 +17,13 @@ from sklearn.ensemble import RandomForestClassifier
 #from sklearn.gaussian_process import GaussianProcessClassifier
 #from sklearn.gaussian_process.kernels import RBF
 from sklearn.svm import SVC
-import numpy as np
 import os
 import os.path
 from flask import Flask, request, render_template, url_for, jsonify, redirect, g
 from flask_jsglue import JSGlue
 from tempfile import mkdtemp
-import json
 from helpers import (BeautifulSoup, get, shuffle, threading, 
-                     time, signal, timedelta, Parser, ProgramKilled, 
-                     signal_handler, Job)
+                     time, timedelta, Parser, np, parse_request)
 from config import getKeys
 from threading import Thread
 from pymongo import MongoClient
@@ -45,17 +42,7 @@ full_map_Y = []
 full_map_coordinates = []
 
 sample_range = {'min_x': 0, 'max_x' : 4, 'min_y' : 0, 'max_y' : 4}
-# get the path for the parent folder to save plot images 
-#parent_folder = os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir))
 
-# extract data from csv and obtain array of data sets
-def show_map(A, B, colors, filename):
-    plt.figure()
-    plt.scatter(A, B, c = colors)
-    #    plt.savefig(str(parent_folder) + filename, bbox_inches='tight')
-    plt.show()
-    plt.clf()
-    
 def train_classifier(grid, X_train, y_train, full_map, best = True):
 #    print(X_train, y_train)
     grid.fit(X_train, y_train)
@@ -255,57 +242,12 @@ def run_test(method, X_data, Y_data, low_cv = 1, length = 51, range_vals = 'Samp
         
     return final_result
 
-def parse_request(data_Set):
-    
-    raw_data = json.loads(data_Set)
-    dimensions = len(raw_data[0]) - 1
-#    print(dimensions)
-    
-    min_x = float("inf")
-    max_x = float("-inf")
-    min_y = float("inf")
-    max_y = float("-inf")
-    min_z = float("inf")
-    max_z = float("-inf")
-    
-    if dimensions == 2:
-        for data in raw_data:
-            min_x = min(float(min_x), float(data[0]))
-            max_x = max(float(max_x), float(data[0]))
-            min_y = min(float(min_y), float(data[1]))
-            max_y = max(float(max_y), float(data[1]))
-            
-        x_y = [[float(raw_data[i][0]), float(raw_data[i][1])] for i in range( len(raw_data) )]
-        
-        labels = [raw_data[i][2] for i in range(len(raw_data))]
-        
-        unique_labels = set(labels)
-        low_count = min([labels.count(label) for label in unique_labels])
-        low_cv = min(5, low_count)
-        
-        range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y}
-        return ( np.array(x_y), np.array(labels), low_cv, range_vals)
-    if dimensions == 3:
-        for data in raw_data:
-            min_x = min(float(min_x), float(data[0]))
-            max_x = max(float(max_x), float(data[0]))
-            min_y = min(float(min_y), float(data[1]))
-            max_y = max(float(max_y), float(data[1]))
-            min_z = min(float(min_z), float(data[2]))
-            max_z = max(float(max_z), float(data[2]))
-            
-        x_y_z = [[float(raw_data[i][0]), float(raw_data[i][1]), float(raw_data[i][2]) ] for i in range( len(raw_data) ) ]
-        
-        labels = [raw_data[i][3] for i in range( len(raw_data) ) ]
-        
-        unique_labels = set(labels)
-        low_count = min([labels.count(label) for label in unique_labels])
-        low_cv = min(5, low_count)
-        
-        range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y, 'max_z' : max_z, 'min_z' : min_z}
-        return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
-    
 settings = getKeys()
+
+def quote_not_in_collection(collection, quote, search_term):
+    results= collection.find_one({search_term : quote.get(search_term)})
+    print( results )
+    return not results
 
 def get_next_Value(collection, sequence_name, value):
     sequence = collection.find_one_and_update(
@@ -326,11 +268,29 @@ def get_new_quotes(collection, client):
     new_quotes = parser.all_quotes
     try:
         for quote in new_quotes:
-            quote['_id'] = get_next_Value(collection, 'quote_id', 1)
-            collection.insert_one(quote)
+            if quote_not_in_collection(collection, quote, 'quote'):
+                quote['_id'] = get_next_Value(collection, 'quote_id', 1)
+                collection.insert_one(quote)
     except Exception as err:
         with open('loggedErrors.txt' 'a') as file:
             file.write(err)
+    finally:
+        if client:
+            client.close()
+def set_generator(set_value):
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycollection = mydb['quotes']
+        result = mycollection.update_one(
+                {'_id' : 'generate_database'},
+                {'$set' : {'generate' : set_value} })
+        return result.matched_count > 0 
+    except Exception as error:
+        print(error)
+        return False
     finally:
         if client:
             client.close()
@@ -339,6 +299,30 @@ parsed_line['_id'] = get_next_Value(mycol, 'quote_id')
 x = mycol.insert_one(parsed_line)
 print(x.inserted_id)
 """
+@app.route('/get_quote/shutdown_generator', methods=["GET"])
+def shutdown_generator():
+    pw = request.args.get('pw')
+    if pw == settings.get('GENERATOR_PW'):
+        value = set_generator(False)
+        if value:
+            return jsonify({'success' : 'generate set to false'})
+        else:
+            return jsonify({'error' : 'something went wrong'})
+    else:
+        return jsonify({'error' : 'invalid command'})
+    
+@app.route('/get_quote/start_generator', methods=["GET"])
+def start_generator():
+    pw = request.args.get('pw')
+    if pw == settings.get('GENERATOR_PW'):
+        value = set_generator(True)
+        if value:
+            return jsonify({'success' : 'generate set to true'})
+        else:
+            return jsonify({'error' : 'something went wrong'})
+    else:
+        return jsonify({'error' : 'invalid command'})
+    
 @app.route('/get_quote/random')
 def get_random_quote():
     client = None
@@ -348,16 +332,69 @@ def get_random_quote():
         mydb = client[database]
         mycol = mydb['quotes']
         max_index = get_next_Value(mycol, 'quote_id', 0)
-        random_index = randint(0, max_index)
-        results = mycol.find({'_id' : random_index})
-        new_thread = Thread(target = get_new_quotes, args=(mycol, client), daemon=True)
-        new_thread.start()
-#        print('hereee')
-        return jsonify(results[0])
+        to_return_num = request.args.get('num', '1')
+        
+        generate_database =  mycol.find({'_id' : 'generate_database'})
+        if generate_database[0].get('generate'):
+            new_thread = Thread(target = get_new_quotes, args=(mycol, client), daemon=True)
+            new_thread.start()
+            
+        return_list = []
+        for x in range(int(to_return_num)):
+            random_index = randint(0, max_index)
+            results = mycol.find({'_id' : random_index})
+            return_list.append(results[0])
+
+        return jsonify(return_list) if len(return_list) > 1 else jsonify(return_list[0])
     except Exception as err:
-        with open('loggedErrors.txt' 'a') as file:
+        with open('loggedErrors.txt', 'a+') as file:
             file.write(err)
         return jsonify({'error' : 'Something went wrong, sorry'})
+    finally:
+        if client:
+            client.close()
+    
+@app.route('/get_quote/find_author', methods=["GET"])
+def find_author():
+    author = request.args.get('author')
+    if not author:
+        return jsonify({'error' : 'no author provided'})
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycol = mydb['quotes']
+        results = mycol.find({'author': author})
+        return jsonify(list(results))
+    except Exception as err:
+        with open('loggedErrors.txt', 'a+') as file:
+            file.write(err)
+        return jsonify({'error' : 'Something went wrong, sorry'}) 
+    finally:
+        if client:
+            client.close()
+
+@app.route('/get_quote/find_source', methods=["GET"])
+def find_source():
+    source = request.args.get('source')
+    if not source:
+        return jsonify({'error' : 'no source provided'})
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycol = mydb['quotes']
+        results = mycol.find({'source': source})
+        return jsonify(list(results))
+    except Exception as err:
+        with open('loggedErrors.txt' 'a+') as file:
+            file.write(err)
+        return jsonify({'error' : 'Something went wrong, sorry'})
+    finally:
+        if client:
+            client.close()
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -439,7 +476,6 @@ def update_queries(collection, query, new_values):
     return num_changed
 
 if __name__ == "__main__":
-   
 #        results = mycol.find_all({'source' : 'Unkown'})
 #        for result in results:
 #            result 

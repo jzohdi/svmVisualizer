@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html>
+  {% block head %}
   <head>
     <meta charset="UTF-8" />
     <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
     <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script>
+    {{
+      JSGlue.include()
+    }}
+    <title>{% block title %} Home {% endblock %}</title>
+    <script>
+      Flask.url_for("index");
+    </script>
   </head>
+  {% endblock %} {% block main %}
   <body style="margin:0px">
     <div id="root"></div>
     <script type="text/babel">
-      const mainColor = "#E8C1C5";
+      const mainColor = "white"; //"#E8C1C5";
       const color2 = "#011638";
       const styles = {
         AppBody: {
@@ -31,13 +40,55 @@
         },
         service: {
           textAlign: "center"
+        },
+        imageStyle: {
+          display: "block",
+          width: "50%",
+          height: "auto",
+          marginLeft: "auto",
+          marginRight: "auto",
+          border: "3px solid " + color2
+        },
+        description: {
+          marginLeft: "25%",
+          marginRight: "25%"
+        },
+        image: {
+          width: "100%"
         }
       };
-      const descriptions = { svm: "SVM Visualzier" };
+      const descriptions = {
+        svm: {
+          title: "SVM Visualzier",
+          description:
+            "A visualizer for SVM prediction space. Uses sklearn with user " +
+            "input to show a 2D or 3D mapping of the selected kernels prediction.",
+          src: "/static/svmvisualizer.png",
+          href: '{{ url_for("svm_visualizer") }}'
+        },
+        quotes: {
+          title: "Quotes REST API",
+          description: "",
+          src: "",
+          href: "{{ url_for('get_quotes') }}"
+        }
+      };
       function Service(props) {
         return (
           <div style={styles.service}>
-            <h4>{props.description}</h4>
+            <h3>{descriptions[props.selection].title}</h3>
+            <a
+              href={descriptions[props.selection].href}
+              style={styles.imageStyle}
+            >
+              <img
+                src={descriptions[props.selection].src}
+                style={styles.image}
+              />
+            </a>
+            <p style={styles.description}>
+              {descriptions[props.selection].description}
+            </p>
           </div>
         );
       }
@@ -53,7 +104,9 @@
           return (
             <div>
               <Line />
-              <Service description={descriptions.svm} />
+              <Service selection={"svm"} />
+              <Line />
+              <Service selection={"quotes"} />
             </div>
           );
         }
@@ -81,4 +134,5 @@
       ReactDOM.render(<App />, document.getElementById("root"));
     </script>
   </body>
+  {% endblock %}
 </html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% block head %}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <!-- Bootstrap 4 -->
+    <!-- Latest compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    {{
+      JSGlue.include()
+    }}
+    <title>{% block title %} Quotes API {% endblock %}</title>
+    <script>
+      Flask.url_for("get_quotes");
+    </script>
+  </head>
+  {% endblock %} {% block main %}
+  <body id="quotes-body" class="main-font">
+    <div id="quotes-header" class="jumbotron jumbotron-fluid header">
+      <div class="container">
+        <h2>Get Quotes API</h2>
+        <p>
+          Compiled database of quotes and authors.<br />
+          All requests are made through GET and responses returned as json data.
+        </p>
+      </div>
+    </div>
+    <div id="line-container"><div id="horizontal-line"></div></div>
+    <div class="row quotes-section">
+      <div class="col-sm-8 offset-sm-2 offset-1">
+        <h4>Getting Started:</h4>
+        <p><b>URL</b></p>
+        <p class="content"><span id='get_quotes'></span></p>
+        <p><b>Examples</b></p>
+        <p class="content"><b>Python</b><span id='python-example'></span></p>
+        <p><b>Response</b><button onclick='sampleRequest()'class='response-button'>Click for Sample Response</button>
+        <div id='sample-response' class="content"></div></p>
+      </div>
+    </div>
+  </body>
+  <script type='text/JavaScript'>
+    const loc = location.href;
+    $('#get_quotes').html(loc+'/random');
+    const sampleRequest = function(){
+        $.get(loc+'/random', function(data){
+            console.log(data);
+            $('#sample-response').html(formatData(data));
+        })
+    }
+    const formatData = function(data){
+        return JSON.stringify(data);
+    }
+    
+  </script>
+  {% endblock %}
+</html>

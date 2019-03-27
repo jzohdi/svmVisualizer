@@ -265,7 +265,7 @@ def db_name():
 def get_new_quotes(collection, client):
     parser = Parser()
     parser.make_request()
-    new_quotes = parser.all_quotes
+    new_quotes = parser.get_recent_quotes()
     try:
         for quote in new_quotes:
             if quote_not_in_collection(collection, quote, 'quote'):
@@ -299,7 +299,7 @@ parsed_line['_id'] = get_next_Value(mycol, 'quote_id')
 x = mycol.insert_one(parsed_line)
 print(x.inserted_id)
 """
-@app.route('/get_quote/shutdown_generator', methods=["GET"])
+@app.route('/get_quotes/shutdown_generator', methods=["GET"])
 def shutdown_generator():
     pw = request.args.get('pw')
     if pw == settings.get('GENERATOR_PW'):
@@ -311,7 +311,7 @@ def shutdown_generator():
     else:
         return jsonify({'error' : 'invalid command'})
     
-@app.route('/get_quote/start_generator', methods=["GET"])
+@app.route('/get_quotes/start_generator', methods=["GET"])
 def start_generator():
     pw = request.args.get('pw')
     if pw == settings.get('GENERATOR_PW'):
@@ -323,7 +323,7 @@ def start_generator():
     else:
         return jsonify({'error' : 'invalid command'})
     
-@app.route('/get_quote/random')
+@app.route('/get_quotes/random')
 def get_random_quote():
     client = None
     try:
@@ -355,7 +355,7 @@ def get_random_quote():
         if client:
             client.close()
     
-@app.route('/get_quote/find_author', methods=["GET"])
+@app.route('/get_quotes/find_author', methods=["GET"])
 def find_author():
     author = request.args.get('author')
     if not author:
@@ -376,7 +376,7 @@ def find_author():
         if client:
             client.close()
 
-@app.route('/get_quote/find_source', methods=["GET"])
+@app.route('/get_quotes/find_source', methods=["GET"])
 def find_source():
     source = request.args.get('source')
     if not source:
@@ -401,8 +401,12 @@ def index():
     return render_template('index.html')
 
 @app.route("/svm_visualizer", methods=["POST", "GET"])
-def sklearn():
-    return render_template("sklearn.html")
+def svm_visualizer():
+    return render_template("svm_visualizer.html")
+
+@app.route('/get_quotes', methods=["GET", "POST"])
+def get_quotes():
+    return render_template('quotes_API.html')
 
 @app.route("/get_model/", methods=["POST", "GET"])
 def get_model():
@@ -484,10 +488,16 @@ if __name__ == "__main__":
 #        for result in results:
 #            result 
     app.run(debug=False)
-#full data_set map
-#show_map(A, B, colors, "/full_data_set.png")
+"""
+    client = None
+    try:
+        client = connect_db()
+        database = db_name()
+        mydb = client[database]
+        mycol = mydb['quotes']
+        reset_id = 674        
 
-#
-#
-#
-
+    finally:
+        if client:
+            client.close()
+"""

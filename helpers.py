@@ -4,6 +4,7 @@ from random import shuffle
 import threading, time, signal
 import json
 import numpy as np
+from re import sub
 
 from datetime import timedelta
 class Parser:
@@ -40,7 +41,7 @@ class Parser:
         this_author = quote.find('ul')
         if this_quote and this_author:
             ( this_quote, this_author ) = ( this_quote.get_text(), this_author.get_text() )
-            ( this_quote, this_author ) = self.scrub_title_and_author(this_quote, this_author)
+#            ( this_quote, this_author ) = self.scrub_title_and_author(this_quote, this_author)
             if len(this_quote) > 10 and len(this_author) > 0:
                 
                 quote_dict = {'source': self.title.strip(), 
@@ -59,9 +60,9 @@ class Parser:
         author_to_list = author.split(" ")
         for word in author_to_list:
             word = self.remove_end_quotes(word)
-            text = text.replace(word, '')
+            text = sub(r"\b%s\b" % word, '', text)
         for word in title_to_list:
-            text = text.replace(word, '')
+            text = sub(r"\b%s\b" % word, '', text)
         return ( text, author )
     
     def remove_end_quotes(self, word):
@@ -70,6 +71,11 @@ class Parser:
         if word.endswith('"') or word.endswith("'"):
             word = word[:-1]
         return word
+    def get_recent_quotes(self):
+        quotes_to_return = self.all_quotes[:]
+        self.all_quotes = []
+        return quotes_to_return
+    
 def parse_request(data_Set):
     
     raw_data = json.loads(data_Set)

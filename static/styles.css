@@ -14,7 +14,7 @@
     height: 75vmin !important;
   }
 } */
-html {
+#svm-html {
   min-width: 700px;
 }
 .choose-method {
@@ -65,4 +65,36 @@ html {
 }
 .code-body {
   margin-left: 20px;
+}
+.header {
+  border-bottom: 1px solid "light-grey";
+}
+.main-font {
+  font-family: "Montserrat", sans-serif !important;
+}
+#quotes-header {
+  background-color: rgba(0, 0, 0, 0);
+}
+#line-container {
+  width: 100%;
+}
+#horizontal-line {
+  margin-left: 10%;
+  width: 80%;
+  height: 2px;
+  border-bottom: 2px solid lightcoral;
+}
+.quotes-section {
+  padding-top: 5vh;
+  padding-bottom: 5vh;
+}
+.content {
+  margin-left: 10%;
+}
+.response-button {
+  margin-left: 20px;
+  background-color: white;
+  border: 2px solid lightcoral;
+  border-radius: 5px;
+  min-width: 100px;
 }

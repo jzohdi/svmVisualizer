@@ -70,74 +70,70 @@
         <p><span id='get-source'></span></p>
         <p class='content'>Returns list of all quotes with your source argument.</p>
         <div class="line-container"><div class="horizontal-line"></div></div>
-        <p class='small-padding'><b>Python</b>
-            <div class='example-code-style'>
-                <div class='content'>
-                <p>import requests</p>
-                <p>response = requests.get(url = URL)</p>
-                <p>data = response.json()</p>
-            </div>
-            </div>
-        </p>
-        <div class="line-container"><div class="horizontal-line"></div></div>
-        <p class='small-padding'><b>Javascript</b>
-            <div class='example-code-style'>
-                <div class='content'>
-                <p>const response = {}</p>
-                <p>fetch(URL).then(function(data){ <br/> response.data = data;</p>
-                <p>}</p>
-            </div>
-            </div>
-        </p>
-        <div class="line-container"><div class="horizontal-line"></div></div>
-        <p class='small-padding'><b>Java</b>
-            <div class='example-code-style'>
-              <div class='content'>
-                <p>import java.net.*;
-                <br/>import java.io.BufferedReader;
-                <br/>import java.io.IOException;
-                <br/>import java.io.InputStreamReader;</p>
-                try {<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;URL url = new URL(URL);<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;try {<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HttpURLConnection con = (HttpURLConnection) url.openConnection();<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;con.setRequestMethod("GET");<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())); <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String inputLine; <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;StringBuffer content = new StringBuffer(); <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while( (inputLine = in.readLine()) != null){ <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;content.append(inputLine); <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in.close(); <br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;con.disconnect();<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(content);<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;} catch (IOException e) {<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.printStackTrace();<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;}<br/>
-                } catch (MalformedURLException e) {<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;e.printStackTrace();<br/>
-                }<br/>
-                
-            </div>
-            </div>
-        </p>
-        <div class="line-container"><div class="horizontal-line"></div></div>
+        <div id='example-code-section'>
+          <div id='example-nav-bar'> <span onclick='displayExample("python")'> Python </span> | 
+            <span onclick='displayExample("javascript")'> Javascript</span> | 
+          <span onclick='displayExample("java")'> Java </span> | 
+        <span onclick='displayExample("php")'> PHP </span> </div>
+        <div id='displayed-example'>
+          <div class='python-example'>
+            <p class='small-padding'><b>Python</b>
+                <div class='example-code-style'>
+                    <div class='content'>
+                    <p>import requests</p>
+                    <p>response = requests.get(url = URL)</p>
+                    <p>data = response.json()</p>
+                </div>
+                </div>
+            </p>
+          </div>
+        </div>
       </div>
-      
+      <div class="line-container"><div class="horizontal-line"></div></div>
     </div>
+  </div>
   </body>
   <script type='text/JavaScript'>
+  const EXAMPLE_BLOCKS = { 'javascript-example' : '<div id="current-example" class="javascript"><p class="small-padding"><b>Javascript</b> </p><div class="example-code-style"><div class="content"><p>const response = {}</p>' +
+                '<p>fetch(URL).then(function(data){ <br> response.data = data;</p><p>}</p></div></div><p></p></div>',
+                'python-example' : "<div id='current-example' class='python'><p class='small-padding'><b>Python</b><div class='example-code-style'><div class='content'><p>import requests</p>" + 
+                    "<p>response = requests.get(url = URL)</p><p>data = response.json()</p></div></div></p></div>",
+                  'java-example' : "<div id='current-example' class='java'><p class='small-padding'><b>Java</b><div class='example-code-style'><div class='content'><p>import java.net.*;<br/>import java.io.BufferedReader;" + 
+                    "<br/>import java.io.IOException;<br/>import java.io.InputStreamReader;</p>try {<p style='margin-left:30px'>URL url = new URL(URL);<br/>try {<br/>HttpURLConnection con = (HttpURLConnection) url.openConnection();<br/>" +
+                      'con.setRequestMethod("GET");<br/>BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())); <br/>String inputLine; <br/>' +
+                "StringBuffer content = new StringBuffer(); <br/>while( (inputLine = in.readLine()) != null){ <br/>content.append(inputLine);}<br/>"+
+                "in.close(); <br/>con.disconnect();<br/>System.out.println(content);<br/>/** add JSON data reader for content */<br/>"+
+                "} catch (IOException e) {<br/><span style='margin-left:25px;'>e.printStackTrace();</span><br/>}</p>} catch (MalformedURLException e) {<br/><p>e.printStackTrace();</p>}</div></div></p>,/div>",
+                "php-example": "<div id='current-example' class='php'><p class='small-padding'><b>PHP<div class='example-code-style'><div class='content'><p>$ch = curl_init();<br/>"+
+                "curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );<br/>curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );<br/>curl_setopt( $ch, CURLOPT_URL, ( URL HERE ) );<br/>" +
+                "$result = curl_exec( $ch );<br/>curl_close( $ch );<br/>$obj = json_decode( $result );<br/>echo $obj->access_token;</p></div></div></p></div>"
+              }
     const loc = location.href;
     $('#get_quotes').html('"'+loc+'/random' + '"');
     $('#get-quotes-withNum').html(loc + '/random?num=YOUR_NUM')
     $('#get-author').html(loc+'/find_author?author=YOUR_AUTHOR')
     $('#get-source').html(loc+'/find_source?source=YOUR_SOURCE')
-    const lines = document.getElementsByClassName('line-container')
-    $(lines).each(function(index, ele){
-       const offset = $(ele).offset().left;
-       $(ele).css('transform', 'translateX(-'+offset+'px)')
-   })
-    
+    const setLines = function(){
+      const lines = document.getElementsByClassName('line-container')
+      $(lines).each(function(index, ele){
+        const offset = $(ele).offset().left;
+        $(ele).css('transform', 'translateX(-'+offset+'px)')
+      })
+    }
+  setLines();
+   const displayExample = function( sectionName ){
+
+      const current = $('#current-example')
+      if ( !current.hasClass(sectionName) ){
+        current.addClass('custom-hide');
+        setTimeout(function(){
+          $('#displayed-example').empty();
+          $('#displayed-example').html(EXAMPLE_BLOCKS[sectionName + '-example']);
+        }, 600)
+      }
+
+   }
+  
   </script>
   {% endblock %}
 </html>

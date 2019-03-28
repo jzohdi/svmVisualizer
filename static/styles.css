@@ -75,11 +75,12 @@
 #quotes-header {
   background-color: rgba(0, 0, 0, 0);
 }
-#line-container {
-  width: 100%;
+.line-container {
+  width: 96vw;
+  position: absolute;
 }
-#horizontal-line {
-  margin-left: 10%;
+.horizontal-line {
+  margin-left: 11%;
   width: 80%;
   height: 2px;
   border-bottom: 2px solid lightcoral;
@@ -88,13 +89,26 @@
   padding-top: 5vh;
   padding-bottom: 5vh;
 }
+#correct-padding {
+  margin-left: 0px;
+  margin-right: 0px;
+}
 .content {
   margin-left: 10%;
 }
 .response-button {
   margin-left: 20px;
   background-color: white;
-  border: 2px solid lightcoral;
+  border: 2px solid #f08080;
   border-radius: 5px;
   min-width: 100px;
+}
+.example-code-style {
+  font-weight: bold;
+  /* color: white;
+  background-color: #1b0d42; */
+  padding: 10px;
+}
+.small-padding {
+  padding-top: 20px;
 }

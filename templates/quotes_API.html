@@ -47,31 +47,96 @@
         </p>
       </div>
     </div>
-    <div id="line-container"><div id="horizontal-line"></div></div>
-    <div class="row quotes-section">
-      <div class="col-sm-8 offset-sm-2 offset-1">
+    <div class="line-container"><div class="horizontal-line"></div></div>
+    <div id='correct-padding' class="quotes-section row">
+      <div class="col-sm-10 offset-sm-1 col-md-8 offset-md-2">
         <h4>Getting Started:</h4>
-        <p><b>URL</b></p>
-        <p class="content"><span id='get_quotes'></span></p>
-        <p><b>Examples</b></p>
-        <p class="content"><b>Python</b><span id='python-example'></span></p>
-        <p><b>Response</b><button onclick='sampleRequest()'class='response-button'>Click for Sample Response</button>
-        <div id='sample-response' class="content"></div></p>
+        <div class='example-code-style'>URL = <span id='get_quotes'></span></div>
+        <p class='small-padding'><b>Sample Response <small>* source may be empty string *</small></b>
+            <div class="content">
+                <b>{</b><br/><b>"</b>_id<b>"</b> : 192,<br/>
+                <b>"</b>author<b>"</b> : <b>"</b>The Phantom of the Opera (1962 film)<b>"</b>,<br/>
+                <b>"</b>quote<b>"</b> : <b>"</b>I am going to teach you to sing, Christine. I am going to give you a new voice! A voice so wonderful that theatres all over the world will be filled with your admirers. You will be the greatest star the opera has ever known. Greater than the greatest! And when you sing, Christine, you will be singing only... for me.<b>"</b>,
+                <br/><b>"</b>source<b>"</b> : <b>"</b> <b>"</b><br/><b>}</b>
+            </div>
+        </p>
+        <p><b>Arguments</b></p>
+        <p><span id='get-quotes-withNum'></span></p>
+        <p class='content'>Replace "YOUR_NUM" with an integer. <br/>Returns a list of the specified number of random quotes.</p>
+        <p><b>Other Methods</b></p>
+        <p><span id='get-author'></span></p>
+        <p class='content'>Replace "YOUR_AUTHOR" with the name you would like to search.
+            <br/>Returns a list of all quotes in the database by this author.</p>
+        <p><span id='get-source'></span></p>
+        <p class='content'>Returns list of all quotes with your source argument.</p>
+        <div class="line-container"><div class="horizontal-line"></div></div>
+        <p class='small-padding'><b>Python</b>
+            <div class='example-code-style'>
+                <div class='content'>
+                <p>import requests</p>
+                <p>response = requests.get(url = URL)</p>
+                <p>data = response.json()</p>
+            </div>
+            </div>
+        </p>
+        <div class="line-container"><div class="horizontal-line"></div></div>
+        <p class='small-padding'><b>Javascript</b>
+            <div class='example-code-style'>
+                <div class='content'>
+                <p>const response = {}</p>
+                <p>fetch(URL).then(function(data){ <br/> response.data = data;</p>
+                <p>}</p>
+            </div>
+            </div>
+        </p>
+        <div class="line-container"><div class="horizontal-line"></div></div>
+        <p class='small-padding'><b>Java</b>
+            <div class='example-code-style'>
+              <div class='content'>
+                <p>import java.net.*;
+                <br/>import java.io.BufferedReader;
+                <br/>import java.io.IOException;
+                <br/>import java.io.InputStreamReader;</p>
+                try {<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;URL url = new URL(URL);<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;try {<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HttpURLConnection con = (HttpURLConnection) url.openConnection();<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;con.setRequestMethod("GET");<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())); <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String inputLine; <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;StringBuffer content = new StringBuffer(); <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while( (inputLine = in.readLine()) != null){ <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;content.append(inputLine); <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in.close(); <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;con.disconnect();<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(content);<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;} catch (IOException e) {<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.printStackTrace();<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+                } catch (MalformedURLException e) {<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;e.printStackTrace();<br/>
+                }<br/>
+                
+            </div>
+            </div>
+        </p>
+        <div class="line-container"><div class="horizontal-line"></div></div>
       </div>
+      
     </div>
   </body>
   <script type='text/JavaScript'>
     const loc = location.href;
-    $('#get_quotes').html(loc+'/random');
-    const sampleRequest = function(){
-        $.get(loc+'/random', function(data){
-            console.log(data);
-            $('#sample-response').html(formatData(data));
-        })
-    }
-    const formatData = function(data){
-        return JSON.stringify(data);
-    }
+    $('#get_quotes').html('"'+loc+'/random' + '"');
+    $('#get-quotes-withNum').html(loc + '/random?num=YOUR_NUM')
+    $('#get-author').html(loc+'/find_author?author=YOUR_AUTHOR')
+    $('#get-source').html(loc+'/find_source?source=YOUR_SOURCE')
+    const lines = document.getElementsByClassName('line-container')
+    $(lines).each(function(index, ele){
+       const offset = $(ele).offset().left;
+       $(ele).css('transform', 'translateX(-'+offset+'px)')
+   })
     
   </script>
   {% endblock %}

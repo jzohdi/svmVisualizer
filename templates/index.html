@@ -68,8 +68,9 @@
         },
         quotes: {
           title: "Quotes REST API",
-          description: "",
-          src: "",
+          description:
+            "REST API returns JSON data of quotes with author and soruce",
+          src: "/static/Get_Quotes.png",
           href: "{{ url_for('get_quotes') }}"
         }
       };
@@ -107,6 +108,7 @@
               <Service selection={"svm"} />
               <Line />
               <Service selection={"quotes"} />
+              <Line />
             </div>
           );
         }

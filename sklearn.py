@@ -333,6 +333,10 @@ def get_random_quote():
         mycol = mydb['quotes']
         max_index = get_next_Value(mycol, 'quote_id', 0)
         to_return_num = request.args.get('num', '1')
+        try :
+            to_return_num = int(to_return_num)
+        except ValueError:
+            return jsonify({'error' : 'invalid num argument'})
         
         generate_database =  mycol.find({'_id' : 'generate_database'})
         if generate_database[0].get('generate'):
@@ -341,7 +345,7 @@ def get_random_quote():
             new_thread.start()
             
         return_list = []
-        for x in range(int(to_return_num)):
+        for x in range(to_return_num):
             random_index = randint(0, max_index)
             results = mycol.find({'_id' : random_index})
             return_list.append(results[0])

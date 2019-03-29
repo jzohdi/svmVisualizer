@@ -139,3 +139,7 @@
 #current-example {
   transition: transform 0.4s, opacity 0.4s;
 }
+.link-color {
+  color: #b70076;
+  font-weight: bold;
+}

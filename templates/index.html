@@ -101,38 +101,36 @@
         );
       }
       class Services extends React.Component {
+        createBlocks = () => {
+          const blocks = [];
+          for (let x = 0; x < this.props.items.length; x++) {
+            blocks.push(
+              <div>
+                <Line />
+                <Service selection={this.props.items[x]} />
+              </div>
+            );
+          }
+          return blocks;
+        };
         render() {
-          return (
-            <div>
-              <Line />
-              <Service selection={"svm"} />
-              <Line />
-              <Service selection={"quotes"} />
-              <Line />
-            </div>
-          );
-        }
-      }
-      class Main extends React.Component {
-        state = {};
-        render() {
-          return (
-            <div style={styles.MainBody}>
-              <Services />
-            </div>
-          );
+          return <div>{this.createBlocks()}</div>;
         }
       }
       class App extends React.Component {
-        state = {};
+        state = { items: Object.keys(descriptions) };
         render() {
           return (
             <div style={styles.AppBody}>
-              <Main />
+              <div style={styles.MainBody}>
+                <Services items={this.state.items} />
+                <Line />
+              </div>
             </div>
           );
         }
       }
+
       ReactDOM.render(<App />, document.getElementById("root"));
     </script>
   </body>

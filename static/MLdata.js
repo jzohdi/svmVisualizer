@@ -207,9 +207,9 @@ const showModel = (SVMmethod, chartId) => {
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {
     console.log(window.innerWidth);
-    return window.innerWidth * 0.8;
+    return window.innerWidth * 0.7;
   } else {
-    return window.innerWidth / 2;
+    return window.innerWidth / 2.3;
   }
 };
 // const calculateMargin = () => {
@@ -261,8 +261,14 @@ const runData = () => {
     createScatter(sampleData, "sampleData");
   } else if (selectedData === "Manual Data") {
     const manualData = parseManualData();
-
+    if (manualData[0] == undefined) {
+      $("#manual-data-error").html(
+        "Could not parse data, check that all rows are filled appropriately."
+      );
+      return;
+    }
     if (!(manualData[0].length == 3 || manualData[0].length == 4)) {
+      console.log("here");
       $("#manual-data-error").html("please enter 2 or 3 dimensional data");
       return;
     }

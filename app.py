@@ -4,13 +4,10 @@ Created on Sun Aug  5 14:58:57 2018
 
 @author: jake
 """
-import pylab as plt
 from random import randint
 from sklearn.linear_model import LogisticRegression
 #from sklearn.model_selection import train_test_split
-from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
-from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -19,7 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 import os
 import os.path
-from flask import Flask, request, render_template, url_for, jsonify, redirect, g
+from flask import Flask, request, render_template, url_for, jsonify#, redirect, g
 from flask_jsglue import JSGlue
 from tempfile import mkdtemp
 from helpers import (BeautifulSoup, get, shuffle, threading, 

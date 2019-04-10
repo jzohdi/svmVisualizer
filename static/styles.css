@@ -33,13 +33,13 @@
 }
 #manual-table tr th,
 #manual-table tr td {
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
 }
 .manual-table-textarea {
   width: 100%;
-  height: 50vh;
+  height: 25vh;
 }
 .header-text {
   padding: 20px;

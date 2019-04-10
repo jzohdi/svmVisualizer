@@ -5,8 +5,8 @@ import threading, time, signal
 import json
 import numpy as np
 from re import sub
-
 from datetime import timedelta
+
 class Parser:
     def __init__(self):
         self.url = 'https://en.wikiquote.org/wiki/Special:Random'
@@ -41,7 +41,7 @@ class Parser:
         this_author = quote.find('ul')
         if this_quote and this_author:
             ( this_quote, this_author ) = ( this_quote.get_text(), this_author.get_text() )
-#            ( this_quote, this_author ) = self.scrub_title_and_author(this_quote, this_author)
+            ( this_quote, this_author ) = self.scrub_title_and_author(this_quote, this_author)
             if len(this_quote) > 10 and len(this_author) > 0:
                 
                 quote_dict = {'source': self.title.strip(), 
@@ -57,10 +57,11 @@ class Parser:
             
     def scrub_title_and_author(self, text, author):
         title_to_list = self.title.split(" ")
-        author_to_list = author.split(" ")
-        for word in author_to_list:
-            word = self.remove_end_quotes(word)
-            text = sub(r"\b%s\b" % word, '', text)
+#        author_to_list = author.split(" ")
+#        for word in author_to_list:
+#            word = self.remove_end_quotes(word)
+#            text = sub(r"\b%s\b" % word, '', text)
+        text = sub(r"\b%s\b" % author, '', text)
         for word in title_to_list:
             text = sub(r"\b%s\b" % word, '', text)
         return ( text, author )
@@ -126,6 +127,25 @@ def parse_request(data_Set):
         range_vals = {'max_x' : max_x, 'min_x': min_x, 'max_y' : max_y, 'min_y' : min_y, 'max_z' : max_z, 'min_z' : min_z}
         return (np.array(x_y_z), np.array(labels), low_cv, range_vals)
         
+
+"""
+def show_map(A, B, colors, filename):
+    plt.figure()
+    plt.scatter(A, B, c = colors)
+    #    plt.savefig(str(parent_folder) + filename, bbox_inches='tight')
+    plt.show()
+    plt.clf()
+    
+parent_folder = os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir))
+
+while True:
+      try:
+          time.sleep(1)
+          print('here')
+      except (ProgramKilled,KeyboardInterrupt, SystemExit):
+          print("Program killed: running cleanup code")
+          job.stop()
+          break
 class ProgramKilled(Exception):
     pass
     
@@ -148,23 +168,4 @@ class Job(threading.Thread):
     def run(self):
             while not self.stopped.wait(self.interval.total_seconds()):
                 self.execute(*self.args, **self.kwargs)
-
-"""
-def show_map(A, B, colors, filename):
-    plt.figure()
-    plt.scatter(A, B, c = colors)
-    #    plt.savefig(str(parent_folder) + filename, bbox_inches='tight')
-    plt.show()
-    plt.clf()
-    
-parent_folder = os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir))
-
-while True:
-      try:
-          time.sleep(1)
-          print('here')
-      except (ProgramKilled,KeyboardInterrupt, SystemExit):
-          print("Program killed: running cleanup code")
-          job.stop()
-          break
 """

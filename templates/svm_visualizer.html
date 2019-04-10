@@ -63,7 +63,7 @@
         </div>
       </div>
     </div>
-    <!-- <div class="container"> -->
+    <div class="container">
       <div class="row">
         <div style='text-align:center;'class="col-lg-6">
           <div class='choose-method'>
@@ -91,22 +91,21 @@
               <option>Manual Data</option>
             </select>
             <button onClick='runData()'>Run</button>
+            <p id='manual-data-error'></p>
           </div>
           <div id="sampleData" style="width: 100%; height:100%;"></div>
           {#<!-- <canvas id="sampleData" width="200" height="200"></canvas> -->#}
         </div>
       </div>
-    <!-- </div> -->
+    </div>
     <div class="container">
       <div class="row">
-        <div class='col-xs-6 col-sm-4'>
+        <div class='col-xs-12'>
           <h3>Manul Data: </h3>
             <p>( comma separated or paste from excel )</p>
-            <p id='manual-data-error'></p>
           <table id='manual-table'>
             <tr>
-              <th> X, Y, Z (optional) </th>
-              <th> Label </th>
+              <th> X, Y, Z (optional), Label (Classification) </th>
             </tr>
           </table>
           <textarea id='manual-data' class='manual-table-textarea'>1, 3, 1
@@ -118,24 +117,15 @@
 7, 5, 0
 6, 4, 0</textarea>
       </div> 
-      <div class='col-xs-6 col-sm-4'>
+    </div>
+    <div class="row">
+      <div class='col-xs-12'>
         <h3>Example Input: </h3>
+        <textarea style='width:100%;height:300px;text-align: left;'>1, 3, 2, no&#013;2, 2, 3, no&#013;2, 1, 1, no&#013;3, 4, 3, no
+5, 6, 3, yes&#013;4, 5, 4, yes&#013;7, 5, 3, yes&#013;6, 4, 2, yes&#013;2, 3, 1, yes&#013;4, 5, 1, yes&#013;3, 4, 1, yes
+4, 2, 3 ,no&#013;4, 3, 2, no&#013;5, 3, 3, no</textarea>
           <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='excelExample.png')}}" />
           <img width='100%' style='max-width: 300px' src="{{url_for('static', filename='commaExample.png')}}" />
-          <textarea rows="15" cols='30'>1, 3, 2, no
-2, 2, 3, no
-2, 1, 1, no
-3, 4, 3, no
-5, 6, 3, yes
-4, 5, 4, yes
-7, 5, 3, yes
-6, 4, 2, yes
-2, 3, 1, yes
-4, 5, 1, yes
-3, 4, 1, yes
-4, 2, 3 ,no
-4, 3, 2, no
-5, 3, 3, no</textarea>
       </div>
     </div>
   </div>

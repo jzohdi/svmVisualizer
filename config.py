@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov  8 16:16:09 2018
-
-@author: jakez
-"""
-def getKeys():
+def getKeys(os):
     try:
         dotenv = '.env.ini'
                 
@@ -17,6 +11,10 @@ def getKeys():
             file.close()
         return env_vars
     except:
-        print('env file not found' )
-
+        obj = {}
+        keys = ["SHUT_DOWN", "STOP_QUOTES", "MONGO_USER", "MONGO_USER_PW", "ERROR_DB", "DB_NAME", "GENERATOR_PW"]
+        for key in keys: 
+            obj[key] = os.environ.get(key)
+        obj["MONGO_STRING"] = "mongodb+srv://{}:{}@quotesdata-jkbvr.mongodb.net/test?{}"
+        return obj
 #    os.environ.update({"SECRET_KEY" : })

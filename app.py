@@ -12,6 +12,7 @@ from sklearn.svm import SVC
 import os
 import os.path
 from flask import Flask, request, render_template, url_for, jsonify
+from flask_cors import CORS
 from flask_jsglue import JSGlue
 from tempfile import mkdtemp
 import json
@@ -65,6 +66,7 @@ mongo_helper_depenecies['scraper'] = wiki_quote_scraper
 mongo_helper = MongoHelper(**mongo_helper_depenecies)
 
 app = Flask(__name__)
+CORS(app)
 jsglue = JSGlue(app)
 
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')

@@ -44,6 +44,7 @@ wiki_quote_scraper = Parser(**parser_dependencies)
 svm_dependencies = {
     'np': np,
     'json': json,
+    "preprocessing": preprocessing,
     "GridSearchCV": GridSearchCV,
     "SVC": SVC
 }
@@ -59,6 +60,7 @@ mongo_helper_depenecies = {'datetime': datetime, 'MongoClient': MongoClient}
 mongo_helper_depenecies['settings'] = settings
 mongo_helper_depenecies['Thread'] = Thread
 mongo_helper_depenecies['randint'] = randint
+mongo_helper_depenecies['scraper'] = wiki_quote_scraper
 
 mongo_helper = MongoHelper(**mongo_helper_depenecies)
 
@@ -116,7 +118,7 @@ def get_random_quote():
     result = mongo_helper.connect_to_db(mongo_helper.get_random_quotes, kwargs)
 
     if result.get("success"):
-        mongo_helper.generate_new_quotes(wiki_quote_scraper)
+        mongo_helper.generate_new_quotes()
         return jsonify(result.get("value"))
     return jsonify({"error": "Something went wrong."})
 

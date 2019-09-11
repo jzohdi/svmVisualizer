@@ -1,10 +1,12 @@
 class MongoHelper:
-    def __init__(self, settings, datetime, MongoClient, Thread, randint):
+    def __init__(self, settings, datetime, MongoClient, Thread, randint,
+                 scraper):
         self.env = settings
         self.datetime = datetime
         self.MongoClient = MongoClient
         self.Thread = Thread
         self.randint = randint
+        self.scraper = scraper
 
     def quote_not_in_collection(self, collection, quote, search_term):
         results = collection.find_one({search_term: quote.get(search_term)})
@@ -59,10 +61,10 @@ class MongoHelper:
                 client.close()
             return return_value
 
-    def get_new_quotes(self, mydb, scraper):
+    def get_new_quotes(self, mydb):
         collection = mydb['quotes']
-        scraper.make_request()
-        new_quotes = scraper.get_recent_quotes()
+        self.scraper.make_request()
+        new_quotes = self.scraper.get_recent_quotes()
         for quote in new_quotes:
             if self.quote_not_in_collection(collection, quote, 'quote'):
                 quote['_id'] = self.get_next_Value(collection, 'quote_id', 1)
@@ -100,20 +102,19 @@ class MongoHelper:
             return return_list[0]
         return return_list
 
-    def generate_new_quotes(self, scraper):
+    def generate_new_quotes(self):
         new_thread = self.Thread(target=self.check_generate,
-                                 args=(scraper),
+                                 args=[],
                                  daemon=True)
         new_thread.start()
 
-    def check_generate(self, scraper):
+    def check_generate(self):
         check_if_generate_result = self.connect_to_db(self.check_if_generate)
         if not check_if_generate_result.get("success"):
             return
         if not check_if_generate_result.get("value"):
             return
-        kwargs = {"scraper": scraper}
-        self.connect_to_db(self.generate_new_quotes, kwargs)
+        self.connect_to_db(self.get_new_quotes)
 
     def check_if_generate(self, mydb):
         collection = mydb['quotes']

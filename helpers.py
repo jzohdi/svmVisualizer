@@ -77,8 +77,9 @@ class Parser:
 
 def train_svm_from_data_then_update_db(svm_helper, mongo_helper,
                                        svm_run_test_kwargs, repr_id):
-    if mongo_helper.id_exists_in_collection(repr_id,
-                                            mongo_helper.env.get("SVM_DB")):
+    collection_name = mongo_helper.env.get("SVM_DB")
+    print(f"collection name: {collection_name}")
+    if mongo_helper.id_exists_in_collection(repr_id, collection_name):
         return
 
     results = svm_helper.run_test(**svm_run_test_kwargs)

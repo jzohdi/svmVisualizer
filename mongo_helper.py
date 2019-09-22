@@ -1,12 +1,13 @@
 class MongoHelper:
     def __init__(self, settings, datetime, MongoClient, Thread, randint,
-                 scraper):
+                 scraper, traceback):
         self.env = settings
         self.datetime = datetime
         self.MongoClient = MongoClient
         self.Thread = Thread
         self.randint = randint
         self.scraper = scraper
+        self.traceback = traceback
 
     def quote_not_in_collection(self, collection, quote, search_term):
         results = collection.find_one({search_term: quote.get(search_term)})
@@ -52,6 +53,7 @@ class MongoHelper:
 
         except Exception as err:
             print(err)
+            print(self.traceback.print_exc())
             error_collection = mydb[self.env.get('ERROR_DB')]
             error_collection.insert_one({
                 'error': str(err),

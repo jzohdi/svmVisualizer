@@ -196,6 +196,8 @@ const retrieveModel = (SVMmethod, chartId, model_id) => {
   $.get("/retrieve_model/" + model_id).done(function(data) {
     if (data["status"] === "Finished") {
       parseModelData(data, SVMmethod, chartId);
+    } else if (data.hasOwnProperty("error")) {
+      clearInterval(intervalID);
     } else {
       let intervalID = null;
       intervalID = setInterval(function() {
@@ -203,6 +205,8 @@ const retrieveModel = (SVMmethod, chartId, model_id) => {
           console.log(data);
           if (data["status"] === "Finished") {
             parseModelData(data, SVMmethod, chartId);
+            clearInterval(intervalID);
+          } else if (data.hasOwnProperty("error")) {
             clearInterval(intervalID);
           }
         });

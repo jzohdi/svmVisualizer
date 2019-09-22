@@ -122,3 +122,37 @@ class MongoHelper:
         if generate_database.get("generate"):
             return True
         return False
+
+    def inc_svm_sequence_id(self, mydb, value):
+        collection = mydb[self.env.get("SVM_DB")]
+        sequence = collection.find_one_and_update({'_id': "id_sequence"},
+                                                  {'$inc': {
+                                                      'value': value
+                                                  }})
+        return sequence.get('value')
+
+    def insert_trained_data_to_db(self, mydb, svm_result):
+        collection = mydb[self.env.get("SVM_DB")]
+        collection.insert_one(svm_result)
+
+    def return_svm_result_if_done(self, mydb, result_id):
+        collection = mydb[self.env.get("SVM_DB")]
+        find_result = collection.find_one({"_id": result_id}, {"_id": 0})
+        # print(find_result)
+        if find_result:
+            return find_result
+        return False
+
+    def id_exists_in_collection(self, item_id, collection_name):
+        kwargs = {"item_id": item_id, "collection_name": collection_name}
+        id_in_db = self.connect_to_db(self.check_for_id, kwargs)
+        if id_in_db.get("success"):
+            return id_in_db.get("value")
+        return True
+
+    def check_for_id(self, mydb, item_id, collection_name):
+        collection = mydb[collection_name]
+        result = collection.find_one({"_id": item_id})
+        if not result:
+            return False
+        return True

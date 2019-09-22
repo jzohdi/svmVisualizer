@@ -73,3 +73,23 @@ class Parser:
         quotes_to_return = self.all_quotes[:]
         self.all_quotes = []
         return quotes_to_return
+
+
+def train_svm_from_data_then_update_db(svm_helper, mongo_helper,
+                                       svm_run_test_kwargs, repr_id):
+    if mongo_helper.id_exists_in_collection(repr_id,
+                                            mongo_helper.env.get("SVM_DB")):
+        return
+
+    results = svm_helper.run_test(**svm_run_test_kwargs)
+    final_data = {
+        "_id": repr_id,
+        "test_data": results.get('test_data').tolist(),
+        'result': results.get('result').tolist(),
+        'confidence': results.get('confidence'),
+        'score': results.get('score'),
+        'params': results.get('params')
+    }
+    kwargs = {"svm_result": final_data}
+
+    mongo_helper.connect_to_db(mongo_helper.insert_trained_data_to_db, kwargs)

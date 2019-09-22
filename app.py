@@ -1,4 +1,25 @@
+import os
+import os.path
+from flask import Flask, request, render_template, url_for, jsonify
+from flask_cors import CORS
+from flask_jsglue import JSGlue
+from tempfile import mkdtemp
+
+## mongo helper dependencies + Parser from helpers
+from threading import Thread, Lock
+from pymongo import MongoClient
+import datetime
 from random import randint
+
+## start parser dependencies ################
+from requests import get
+from re import sub
+from bs4 import BeautifulSoup
+from random import shuffle
+#### start svm dependencies ############
+import json
+import numpy as np
+### end parser dependencies ################
 from sklearn.linear_model import LogisticRegression
 #from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -9,23 +30,9 @@ from sklearn.ensemble import RandomForestClassifier
 #from sklearn.gaussian_process import GaussianProcessClassifier
 #from sklearn.gaussian_process.kernels import RBF
 from sklearn.svm import SVC
-import os
-import os.path
-from flask import Flask, request, render_template, url_for, jsonify
-from flask_cors import CORS
-from flask_jsglue import JSGlue
-from tempfile import mkdtemp
-import json
-from random import shuffle
-from threading import Thread, Lock
-from pymongo import MongoClient
-import datetime
-from requests import get
-from re import sub
-import numpy as np
-from bs4 import BeautifulSoup
+import hashlib
 
-from helpers import Parser
+from helpers import Parser, train_svm_from_data_then_update_db
 from svm import SVM_Helper
 from mongo_helper import MongoHelper
 from config import getKeys
@@ -164,10 +171,10 @@ def get_quotes():
     return render_template('quotes_API.html')
 
 
-@app.route("/get_model/", methods=["POST", "GET"])
+@app.route("/train_model/", methods=["POST", "GET"])
 def get_model():
-    method = request.args.get('runMethod', '')
-    data_set = request.args.get('data_set')
+    method = request.form.get('runMethod', '')
+    data_set = request.form.get('data_set')
     #    print("args ", data_set, " ", method)
     training_data = [[]]
     label_data = []
@@ -185,17 +192,50 @@ def get_model():
          vals) = svm_helper.parse_request(data_set)
         length = int(len(label_data) / 2)
 
-    results = svm_helper.run_test(method, training_data, label_data, low_cv,
-                                  length, vals)
-    final_data = {
-        "test_data": results.get('test_data').tolist(),
-        'result': results.get('result').tolist(),
-        'confidence': results.get('confidence'),
-        'score': results.get('score'),
-        'params': results.get('params')
+    # need to call .tolist() as numpy array is not serializable
+    user_request = {
+        "method": method,
+        "training_data": training_data.tolist(),
+        "label_data": label_data.tolist()
     }
-    #print(final_data)
-    return jsonify(final_data)
+    user_request_repr = json.dumps(user_request)
+    request_repr_id = hashlib.sha1(user_request_repr.encode()).hexdigest()
+
+    run_test_kwargs = {
+        "method": method,
+        "training_data": training_data,
+        "label_data": label_data,
+        "low_cv": low_cv,
+        "length": length,
+        "range_vals": vals
+    }
+    ## start thread to handle training the SVM, return ID so can lookup in db when done.
+    new_thread = Thread(target=train_svm_from_data_then_update_db,
+                        args=(svm_helper, mongo_helper, run_test_kwargs,
+                              request_repr_id),
+                        daemon=True)
+    new_thread.start()
+
+    return jsonify(request_repr_id)
+
+
+@app.route("/retrieve_model/<string:model_id>", methods=["GET"])
+def retrieve_model(model_id):
+
+    kwargs = {"result_id": model_id}
+    retrieve_model_if_done = mongo_helper.connect_to_db(
+        mongo_helper.return_svm_result_if_done, kwargs)
+
+    if retrieve_model_if_done.get("success"):
+        value_to_return = retrieve_model_if_done.get("value")
+
+        if value_to_return:
+            value_to_return["status"] = "Finished"
+            return jsonify(value_to_return)
+
+        return jsonify({"status": "Processing"})
+
+    return jsonify({"error": "Something went wrong."})
 
 
 @app.context_processor

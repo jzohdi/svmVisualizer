@@ -162,51 +162,72 @@ const runMethod = chartId => {
     }
   }
 };
+
+const parseModelData = (data, SVMmethod, chartId) => {
+  delete data["status"];
+  const bestParams = data["params"];
+  delete data["params"];
+  const bestScore = data["score"];
+  delete data["score"];
+  if (data.test_data[0].length === 2) {
+    dataSet = parse2dData(data);
+  }
+  if (data.test_data[0].length === 3) {
+    dataSet = parse3dData(data);
+  }
+  if (CURRENT_DATA === "Sample") {
+    cacheData[SVMmethod] = {
+      plot: dataSet,
+      score: bestScore,
+      params: bestParams
+    };
+  }
+
+  createScatter(dataSet, chartId);
+  waiting = false;
+  console.log("method call successful");
+  $("#" + chartId + "-message").html("Best Params: " + string(bestParams));
+};
+
+const retrieveModel = (SVMmethod, chartId, model_id) => {
+  // console.log(SVMmethod);
+  // console.log(model_id);
+  // Do retrive model once at beginning to check if the data set is cached in data base.
+  $.get("/retrieve_model/" + model_id).done(function(data) {
+    if (data["status"] === "Finished") {
+      parseModelData(data, SVMmethod, chartId);
+    } else {
+      let intervalID = null;
+      intervalID = setInterval(function() {
+        $.get("/retrieve_model/" + model_id).done(function(data) {
+          console.log(data);
+          if (data["status"] === "Finished") {
+            parseModelData(data, SVMmethod, chartId);
+            clearInterval(intervalID);
+          }
+        });
+      }, 5000);
+    }
+  });
+};
+
 const showModel = (SVMmethod, chartId) => {
   // console.log(CURRENT_DATA);
   waiting = true;
   $("#" + chartId + "-message").html("processing...");
-  $.ajax({
-    type: "GET",
-    url: "/get_model/",
-    contentType: "application/json; charset=utf-8",
-    data: {
-      runMethod: SVMmethod,
-      data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
-    },
-    success: function(data) {
-      // console.log(data["confidence"]);
-      const bestParams = data["params"];
-      delete data["params"];
-      const bestScore = data["score"];
-      delete data["score"];
-      if (data.test_data[0].length === 2) {
-        dataSet = parse2dData(data);
-      }
-      if (data.test_data[0].length === 3) {
-        dataSet = parse3dData(data);
-      }
-      if (CURRENT_DATA === "Sample") {
-        cacheData[SVMmethod] = {
-          plot: dataSet,
-          score: bestScore,
-          params: bestParams
-        };
-      }
-
-      createScatter(dataSet, chartId);
-      waiting = false;
-      console.log("method call successful");
-      $("#" + chartId + "-message").html("Best Params: " + string(bestParams));
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      alert(errorThrown);
-    }
-  });
+  $.post("/train_model/", {
+    runMethod: SVMmethod,
+    data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
+  })
+    .done(function(data) {
+      retrieveModel(SVMmethod, chartId, data);
+    })
+    .fail(function(error) {
+      alert(error);
+    });
 };
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {
-    console.log(window.innerWidth);
     return window.innerWidth * 0.7;
   } else {
     return window.innerWidth / 2.3;

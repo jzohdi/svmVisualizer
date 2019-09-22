@@ -85,7 +85,7 @@ const parse2dData = data_set => {
     let confidence = false;
 
     if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 1);
+      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 1);
     }
 
     if (!classes.hasOwnProperty(value)) {

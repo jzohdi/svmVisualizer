@@ -87,7 +87,6 @@ const parse2dData = data_set => {
     if (data_set["confidence"] != null) {
       confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 1);
     }
-
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
       const newDataObject = createNewDataObject(value, newIndex, 2, confidence);
@@ -122,7 +121,7 @@ const parse3dData = data_set => {
   data_set.result.forEach((value, index) => {
     let confidence = false;
     if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 0.9);
+      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 0.9);
     }
 
     if (!classes.hasOwnProperty(value)) {

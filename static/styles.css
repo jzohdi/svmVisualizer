@@ -48,8 +48,9 @@
 }
 .header-text2 {
   padding-top: 20px;
-  color: white;
-  background-color: rgb(25, 150, 100);
+  color: black;
+  font-weight: 600;
+  /* background-color: rgb(25, 150, 100); */
 }
 .about-section1 {
   text-align: center;

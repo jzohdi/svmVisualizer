@@ -39,11 +39,18 @@ class SVM_Helper:
         self.coords = self.np.array([[self.A[i], self.B[i]]
                                      for i in range(self.data_length)])
 
+    """
+    When a request is made and input data is recieved, the data must be
+    parsed for the max and min values of x, y and z(if exists) coordinates.
+    This is so that we can then build the mapping of the propper space set.
+    Also needed is to separate the data into the labels (find each unique label)
+    and the x, y (and z) data. If there is a low amount of data, then we need to
+    return a low_cv to be used by SVM methods.
+    """
     def parse_request(self, data_Set):
 
         raw_data = self.json.loads(data_Set)
         dimensions = len(raw_data[0]) - 1
-        #    print(dimensions)
 
         min_x = float("inf")
         max_x = float("-inf")
@@ -52,6 +59,7 @@ class SVM_Helper:
         min_z = float("inf")
         max_z = float("-inf")
 
+        # if dimensions is 2, find the min and max x, y and
         if dimensions == 2:
             for data in raw_data:
                 min_x = min(float(min_x), float(data[0]))
@@ -179,7 +187,6 @@ class SVM_Helper:
         gpc = self.SVC(probability=True)
         grid = self.GridSearchCV(gpc, param_grid=params, cv=low_cv)
 
-        #print(grid.cv_results_)
         rbf_result = self.train_classifier(grid, training_data, label_data,
                                            full_map)
         return rbf_result
@@ -221,7 +228,7 @@ class SVM_Helper:
                  low_cv=1,
                  length=51):
         max_n_neighbors = min(length, 51)
-        #    print('n_neighbors here....... ',max_n_neighbors)
+
         max_depth = [int(x) for x in range(1, max_n_neighbors)]
         min_samples_split = [int(x) for x in range(2, 11)]
 
@@ -242,7 +249,7 @@ class SVM_Helper:
                     low_cv=1,
                     length=51):
         max_n_neighbors = min(length, 51)
-        #    print('n_neighbors here....... ',max_n_neighbors)
+
         max_depth = [int(x) for x in range(1, max_n_neighbors)]
         min_samples_split = [int(x) for x in range(2, 11)]
 
@@ -321,6 +328,9 @@ class SVM_Helper:
                             [x_coord, y_coord, z_coord])
             return self.np.array(full_map_coordinates)
 
+    # normalize training data may be used to confine the data to a standard space
+    # This is necessary for SVM methods that use gradient decent because otherwise,
+    # The method could be prone to falling in sub-optimal valleys.
     def normalize_training_data(self, training_data):
         data_length = len(training_data)
         scaling_factors = []

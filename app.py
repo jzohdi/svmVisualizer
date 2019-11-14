@@ -10,6 +10,7 @@ from threading import Thread, Lock
 from pymongo import MongoClient
 import datetime
 from random import randint
+import traceback
 
 ## start parser dependencies ################
 from requests import get
@@ -69,6 +70,7 @@ mongo_helper_depenecies['settings'] = settings
 mongo_helper_depenecies['Thread'] = Thread
 mongo_helper_depenecies['randint'] = randint
 mongo_helper_depenecies['scraper'] = wiki_quote_scraper
+mongo_helper_depenecies["traceback"] = traceback
 
 mongo_helper = MongoHelper(**mongo_helper_depenecies)
 

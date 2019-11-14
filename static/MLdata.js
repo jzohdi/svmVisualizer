@@ -1,7 +1,7 @@
-var waiting = false;
-var myChartCreated = false;
-var defaultAnimation = "easeInQuint";
-var CURRENT_DATA = "Sample";
+let waiting = false;
+let myChartCreated = false;
+let defaultAnimation = "easeInQuint";
+let CURRENT_DATA = "Sample";
 
 const deepCopy = obj => {
   return JSON.parse(JSON.stringify(obj));
@@ -85,9 +85,8 @@ const parse2dData = data_set => {
     let confidence = false;
 
     if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 1);
+      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 1);
     }
-
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
       const newDataObject = createNewDataObject(value, newIndex, 2, confidence);
@@ -122,7 +121,7 @@ const parse3dData = data_set => {
   data_set.result.forEach((value, index) => {
     let confidence = false;
     if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.5, 1, 0, 0.9);
+      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 0.9);
     }
 
     if (!classes.hasOwnProperty(value)) {
@@ -196,6 +195,8 @@ const retrieveModel = (SVMmethod, chartId, model_id) => {
   $.get("/retrieve_model/" + model_id).done(function(data) {
     if (data["status"] === "Finished") {
       parseModelData(data, SVMmethod, chartId);
+    } else if (data.hasOwnProperty("error")) {
+      clearInterval(intervalID);
     } else {
       let intervalID = null;
       intervalID = setInterval(function() {
@@ -203,6 +204,8 @@ const retrieveModel = (SVMmethod, chartId, model_id) => {
           console.log(data);
           if (data["status"] === "Finished") {
             parseModelData(data, SVMmethod, chartId);
+            clearInterval(intervalID);
+          } else if (data.hasOwnProperty("error")) {
             clearInterval(intervalID);
           }
         });
@@ -279,7 +282,7 @@ const runData = () => {
   if (selectedData === "Sample Data") {
     CURRENT_DATA = "Sample";
     const sampleData = cacheData["Sample Data"].plot;
-    createScatter(sampleData, "sampleData");
+    createScatter(sampleData, "myChart");
   } else if (selectedData === "Manual Data") {
     const manualData = parseManualData();
     if (manualData[0] == undefined) {
@@ -307,11 +310,11 @@ const runData = () => {
     if (manualData[0].length === 3) {
       const transformedData = transform2dData(manualData);
       const parsedForChart = parse2dData(transformedData);
-      createScatter(parsedForChart, "sampleData");
+      createScatter(parsedForChart, "myChart");
     } else {
       const transformedData = transform3dData(manualData);
       const parsedForChart = parse3dData(transformedData);
-      createScatter(parsedForChart, "sampleData");
+      createScatter(parsedForChart, "myChart");
     }
   }
 };
@@ -369,18 +372,9 @@ const transform3dData = twoDarray => {
   });
   return newDataObj;
 };
-// const sampleData = [
-//   {
-//     backgroundColor: "rgb(255, 0, 0)",
-//     borderColor: "rgb(255, 0, 0)",
-//     label: "scatter1",
-//     data: [{ x: 10, y: 2 }, { x: 2, y: 5 }, { x: 1, y: 4 }]
-//   }
-// ];
-// createScatter(sampleData, "myChart");
 
 const initSampleData = () => {
-  showModel("Sample Data", "sampleData");
+  showModel("Sample Data", "myChart");
 };
 
 const initMethodChart = () => {
@@ -392,11 +386,3 @@ const initMethodChart = () => {
 
 initSampleData();
 initMethodChart();
-// var scatterChart2 = new Chart(ctx, {
-//   type: "scatter",
-
-// });
-// $.getJSON($SCRIPT_ROOT + "/get_model", {}, function(data) {
-//   window.PageSettings = data;
-//   $(idOfMin).append(data.minsize);
-// });

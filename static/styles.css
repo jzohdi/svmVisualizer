@@ -1,19 +1,6 @@
-/* canvas {
-  display: inline !important;
-  margin: 20px 20px;
+body {
+  margin-bottom: 200px !important;
 }
-@media (min-width: 700px) {
-  canvas {
-    width: 57vmin !important;
-    height: 50vmin !important;
-  }
-}
-@media (max-width: 699px) {
-  canvas {
-    width: 85vmin !important;
-    height: 75vmin !important;
-  }
-} */
 #svm-html {
   min-width: 700px;
 }
@@ -48,8 +35,9 @@
 }
 .header-text2 {
   padding-top: 20px;
-  color: white;
-  background-color: rgb(25, 150, 100);
+  color: black;
+  font-weight: 600;
+  /* background-color: rgb(25, 150, 100); */
 }
 .about-section1 {
   text-align: center;
@@ -142,4 +130,17 @@
 .link-color {
   color: #b70076;
   font-weight: bold;
+}
+.run-button {
+  background-color: transparent;
+  border: 3px solid;
+  border-radius: 4px;
+  min-width: 130px;
+  transition: background-color 0.5s;
+}
+.run-button:hover {
+  background-color: #3747d481;
+}
+.gitbutton:hover {
+  background-color: black;
 }

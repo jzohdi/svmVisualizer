@@ -3,6 +3,7 @@ from pymongo import MongoClient
 import datetime
 from threading import Thread
 from random import randint
+import traceback
 
 from requests import get
 from re import sub
@@ -33,6 +34,7 @@ mongo_helper_depenecies['settings'] = settings
 mongo_helper_depenecies['Thread'] = Thread
 mongo_helper_depenecies['randint'] = randint
 mongo_helper_depenecies['scraper'] = None
+mongo_helper_depenecies["traceback"] = traceback
 
 mongo_helper = MongoHelper(**mongo_helper_depenecies)
 

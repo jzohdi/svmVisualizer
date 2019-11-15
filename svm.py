@@ -318,9 +318,9 @@ class SVM_Helper:
             low_z = min(0, int(range_vals.get('min_z')))
             high_z = int(range_vals.get('max_z'))
 
-            x_coords = self.np.linspace(low_x, high_x, 10).tolist()
-            y_coords = self.np.linspace(low_y, high_y, 10).tolist()
-            z_coords = self.np.linspace(low_z, high_z, 10).tolist()
+            x_coords = self.np.linspace(low_x, high_x, 8).tolist()
+            y_coords = self.np.linspace(low_y, high_y, 8).tolist()
+            z_coords = self.np.linspace(low_z, high_z, 8).tolist()
             for x_coord in x_coords:
                 for y_coord in y_coords:
                     for z_coord in z_coords:

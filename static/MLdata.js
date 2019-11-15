@@ -3,6 +3,16 @@ let myChartCreated = false;
 let defaultAnimation = "easeInQuint";
 let CURRENT_DATA = "Sample";
 
+const sizeFor2DPoint = () => {
+  const windowSize = window.innerWidth;
+  return windowSize / 100;
+};
+
+const sizeFor3DPoint = () => {
+  const windowSize = window.innerWidth;
+  return (windowSize * 2) / 100;
+};
+
 const deepCopy = obj => {
   return JSON.parse(JSON.stringify(obj));
 };
@@ -57,7 +67,7 @@ const createNewDataObject = (
   if (dimensions === 2) {
     newObj.type = "scatter";
     newObj.marker = getMarkerObject(
-      10,
+      sizeFor2DPoint(),
       representData[newIndex].color,
       confidence
     );
@@ -67,7 +77,7 @@ const createNewDataObject = (
     newObj.type = "scatter3d";
     newObj.z = [];
     newObj.marker = getMarkerObject(
-      20,
+      sizeFor3DPoint(),
       representData[newIndex].color,
       confidence,
       "circle"
@@ -107,11 +117,8 @@ const parse2dData = data_set => {
       newDataObject.x.push(data_set.test_data[index][0]);
       newDataObject.y.push(data_set.test_data[index][1]);
       finalData.push(newDataObject);
-      // finalData[finalIndex].x.push(data_set.test_data[index][0]);
-      // finalData[finalIndex].y.push(data_set.test_data[index][1]);
     }
   });
-  // console.log(finalData);
   return finalData;
 };
 
@@ -189,8 +196,6 @@ const parseModelData = (data, SVMmethod, chartId) => {
 };
 
 const retrieveModel = (SVMmethod, chartId, model_id) => {
-  // console.log(SVMmethod);
-  // console.log(model_id);
   // Do retrive model once at beginning to check if the data set is cached in data base.
   $.get("/retrieve_model/" + model_id).done(function(data) {
     if (data["status"] === "Finished") {
@@ -201,7 +206,6 @@ const retrieveModel = (SVMmethod, chartId, model_id) => {
       let intervalID = null;
       intervalID = setInterval(function() {
         $.get("/retrieve_model/" + model_id).done(function(data) {
-          console.log(data);
           if (data["status"] === "Finished") {
             parseModelData(data, SVMmethod, chartId);
             clearInterval(intervalID);
@@ -231,19 +235,12 @@ const showModel = (SVMmethod, chartId) => {
 };
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {
-    return window.innerWidth * 0.7;
+    return window.innerWidth * 0.85;
   } else {
-    return window.innerWidth / 2.3;
+    return window.innerWidth * 0.7;
   }
 };
-// const calculateMargin = () => {
-//   if (window.innerWidth < 2000) {
-//     return window.innerWidth;
-//   } else {
-//     return window.innerWidth / 2;
-//   }
-// };
-// let progress = { value: 0 };
+
 const calculateDimension = () => {
   return { d: getChartWidth() };
 };
@@ -253,8 +250,8 @@ const layout = {
   autosize: true,
   hovermode: "closest",
   showlegend: false,
-  width: 600,
-  height: 600,
+  width: window.innerWidth - 100,
+  height: window.innerWidth - 100,
   legend: {
     x: 0.3,
     y: 1.1
@@ -292,7 +289,6 @@ const runData = () => {
       return;
     }
     if (!(manualData[0].length == 3 || manualData[0].length == 4)) {
-      console.log("here");
       $("#manual-data-error").html("please enter 2 or 3 dimensional data");
       return;
     }

@@ -43,6 +43,14 @@ const getMarkerObject = (size, color, confidence, symbol = false) => {
   return newObj;
 };
 
+const getRandomColor = () => {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
 const representData = [
   { color: "rgb(255, 99, 132)", label: "Classification 1" },
   { color: "rgb(0, 124, 249)", label: "Classification 2" },
@@ -56,7 +64,13 @@ const createNewDataObject = (
   dimensions,
   confidence = false
 ) => {
-  newObj = {};
+  /* if the index is less than the default color array length, choose
+  the color from the array. Otherwise, get a random color.*/
+  const color =
+      newIndex < representData.length
+        ? representData[newIndex].color
+        : getRandomColor(),
+    newObj = {};
 
   newObj.x = [];
   newObj.y = [];
@@ -66,23 +80,19 @@ const createNewDataObject = (
   newObj.mode = "markers";
   if (dimensions === 2) {
     newObj.type = "scatter";
-    newObj.marker = getMarkerObject(
-      sizeFor2DPoint(),
-      representData[newIndex].color,
-      confidence
-    );
-    // newObj.name = representData[newIndex].label;
+    newObj.marker = getMarkerObject(sizeFor2DPoint(), color, confidence);
+
     return newObj;
   } else {
     newObj.type = "scatter3d";
     newObj.z = [];
     newObj.marker = getMarkerObject(
       sizeFor3DPoint(),
-      representData[newIndex].color,
+      color,
       confidence,
       "circle"
     );
-    // newObj.name = representData[newIndex].label;
+
     return newObj;
   }
 };
@@ -97,6 +107,7 @@ const parse2dData = data_set => {
     if (data_set["confidence"] != null) {
       confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 1);
     }
+
     if (!classes.hasOwnProperty(value)) {
       const newIndex = Object.keys(classes).length;
       const newDataObject = createNewDataObject(value, newIndex, 2, confidence);
@@ -127,6 +138,7 @@ const parse3dData = data_set => {
   const finalData = [];
   data_set.result.forEach((value, index) => {
     let confidence = false;
+
     if (data_set["confidence"] != null) {
       confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 0.9);
     }
@@ -175,12 +187,15 @@ const parseModelData = (data, SVMmethod, chartId) => {
   delete data["params"];
   const bestScore = data["score"];
   delete data["score"];
+
   if (data.test_data[0].length === 2) {
     dataSet = parse2dData(data);
   }
+
   if (data.test_data[0].length === 3) {
     dataSet = parse3dData(data);
   }
+
   if (CURRENT_DATA === "Sample") {
     cacheData[SVMmethod] = {
       plot: dataSet,
@@ -276,22 +291,26 @@ const createScatter = (dataSet, targetCanvas) => {
 
 const runData = () => {
   const selectedData = $("#select-data :selected").text();
+
   if (selectedData === "Sample Data") {
     CURRENT_DATA = "Sample";
     const sampleData = cacheData["Sample Data"].plot;
     createScatter(sampleData, "myChart");
   } else if (selectedData === "Manual Data") {
     const manualData = parseManualData();
+
     if (manualData[0] == undefined) {
       $("#manual-data-error").html(
         "Could not parse data, check that all rows are filled appropriately."
       );
       return;
     }
+
     if (!(manualData[0].length == 3 || manualData[0].length == 4)) {
       $("#manual-data-error").html("please enter 2 or 3 dimensional data");
       return;
     }
+
     manualData.forEach((row, index) => {
       manualData[index] = row.map((cell, index) => {
         if (index == row.length - 1) {
@@ -303,6 +322,7 @@ const runData = () => {
     });
 
     CURRENT_DATA = manualData;
+
     if (manualData[0].length === 3) {
       const transformedData = transform2dData(manualData);
       const parsedForChart = parse2dData(transformedData);

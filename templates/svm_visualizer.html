@@ -46,6 +46,7 @@
         <div class="col-xs-12">
           <h2>2D/3D Support Vector Machine Visualizer: </h2>
           <p>All methods use scikit-learn GridSearchCV() with a range of parameters to find best results.</p>
+          <div><button id='info-button' class="run-button info-button">What does this program do?</button></div>
           <input value="Github"type="button" class='run-button gitbutton' onclick="window.location.href='https://github.com/jzohdi/svmVisualizer/blob/master/svm.py';">
         </div>
       </div>
@@ -122,9 +123,57 @@
     </div>
   </div>
   </div>
+  <div id='modal-holder'></div>
   
   </body>
   <script src="{{ url_for('static', filename='MLdata.js') }}"></script>
+  <script type='text/javascript'>
+    const MODAL_DIV =
+    '<div id="myModal" class="modal question-titles"><div class="modal-content main-card">' +
+    '<span class="close">X</span>' +
+    "contentPlaceHolder" +
+    "</div></div>";
+    const MODAL_CONTENT = `<h3>Graphing SVM Prediction Space</h3>
+    <p>The scatter plot plotted below is a plot of x, y coordinates and their associated value (either red or blue). If a brand new point is plotted in the middle 
+      incorrectly appears grey, could you take a guess at which color it should be? You could probably make a good attempt. For example, if the grey point
+      is in the middle of a patch of blue points, then you could predict that the new grey point should be blue. </p><p>But how to get a machine to do this? This is the challenge handled by these Support Vector Machine
+      (SVM) algorithims. The program takes in a plot of data (2D or 3D) and the output is predicted surrounding space.</p>
+      <p>Sample data is already loaded onto the graph by default, so a SVM method can be chosen from the start. However, any 2D or 3D data can be entered into the manual data
+         text area, which is below the graph. Once manual data is entered, click the Run button next to "Data to use:" to plot. Next Run an SVM method to see the
+         predicted space based on this data. <button class='run-button done-button'id='done-selection'>Got it!</button>`
+    
+    const createModal = (someIdOnPage, content) => {
+      const modalContent = MODAL_DIV.replace("contentPlaceHolder", content);
+      $(someIdOnPage).html(modalContent);
+
+      const modal = document.getElementById("myModal");
+      // const openButton = document.getElementById(triggerId);
+      const span = document.getElementsByClassName("close")[0];
+      const done = document.getElementById("done-selection");
+
+      modal.style.display = "block";
+
+      span.onclick = function() {
+        modal.style.display = "none";
+        $(someIdOnPage).empty();
+      };
+      if (done != undefined) {
+        done.onclick = () => {
+          span.click();
+        };
+      }
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          span.click();
+        }
+      };
+    };
+
+  
+    $("#info-button").on("click", () => {
+      createModal("#modal-holder", MODAL_CONTENT);
+    })
+  </script>
  
 {% endblock %}
 </html>

@@ -1,7 +1,7 @@
 class SVM_Helper:
     def __init__(self, np, json, preprocessing, GridSearchCV, SVC,
                  LogisticRegression, KNeighborsClassifier,
-                 DecisionTreeClassifier, RandomForestClassifier):
+                 DecisionTreeClassifier, RandomForestClassifier, Counter):
 
         ########### DEPENDENCIES ###################
         self.preprocessing = preprocessing
@@ -13,6 +13,7 @@ class SVM_Helper:
         self.KNeighborsClassifier = KNeighborsClassifier
         self.DecisionTreeClassifier = DecisionTreeClassifier
         self.RandomForestClassifier = RandomForestClassifier
+        self.Counter = Counter
 
         ######### END DEPENDENCIES #################
 
@@ -52,68 +53,54 @@ class SVM_Helper:
         raw_data = self.json.loads(data_Set)
         dimensions = len(raw_data[0]) - 1
 
-        min_x = float("inf")
-        max_x = float("-inf")
-        min_y = float("inf")
-        max_y = float("-inf")
-        min_z = float("inf")
-        max_z = float("-inf")
+        x_data = [float(x[0]) for x in raw_data]
+        y_data = [float(y[1]) for y in raw_data]
+        z_data = None
+        labels = None
+
+        if len(x_data) != len(y_data):
+            return ([[]], [], "Error",
+                    "x data length: {}. y data length: {}".format(
+                        len(x_data), len(y_data)))
+
+        range_vals = {
+            'max_x': max(x_data),
+            'min_x': min(x_data),
+            'max_y': max(y_data),
+            'min_y': min(y_data)
+        }
+
+        if dimensions == 3:
+            z_data = [float(z[2]) for z in raw_data]
+
+            if len(z_data) != len(y_data):
+                return ([[]], [], "Error",
+                        "z data length: {}. x data length: {}".format(
+                            len(z_data), len(x_data)))
+
+            range_vals["min_z"] = min(z_data)
+            range_vals["max_z"] = max(z_data)
+
+            labels = [raw_data[i][3] for i in range(len(raw_data))]
+
+        else:
+            labels = [raw_data[i][2] for i in range(len(raw_data))]
 
         # if dimensions is 2, find the min and max x, y and
         if dimensions == 2:
-            for data in raw_data:
-                min_x = min(float(min_x), float(data[0]))
-                max_x = max(float(max_x), float(data[0]))
-                min_y = min(float(min_y), float(data[1]))
-                max_y = max(float(max_y), float(data[1]))
 
-            x_y = [[float(raw_data[i][0]),
-                    float(raw_data[i][1])] for i in range(len(raw_data))]
+            x_y = list(zip(x_data, y_data))
+            # use counter to get the count of each unique label. If there are
+            # at least 5 examples of each data, use that. else use 5 if less
+            low_cv = min(min(self.Counter(labels).values()), 5)
 
-            labels = [raw_data[i][2] for i in range(len(raw_data))]
-
-            unique_labels = set(labels)
-            low_count = min([labels.count(label) for label in unique_labels])
-            low_cv = min(5, low_count)
-
-            range_vals = {
-                'max_x': max_x,
-                'min_x': min_x,
-                'max_y': max_y,
-                'min_y': min_y
-            }
             return (self.np.array(x_y), self.np.array(labels), low_cv,
                     range_vals)
 
         if dimensions == 3:
-            for data in raw_data:
-                min_x = min(float(min_x), float(data[0]))
-                max_x = max(float(max_x), float(data[0]))
-                min_y = min(float(min_y), float(data[1]))
-                max_y = max(float(max_y), float(data[1]))
-                min_z = min(float(min_z), float(data[2]))
-                max_z = max(float(max_z), float(data[2]))
 
-            x_y_z = [[
-                float(raw_data[i][0]),
-                float(raw_data[i][1]),
-                float(raw_data[i][2])
-            ] for i in range(len(raw_data))]
-
-            labels = [raw_data[i][3] for i in range(len(raw_data))]
-
-            unique_labels = set(labels)
-            low_count = min([labels.count(label) for label in unique_labels])
-            low_cv = min(5, low_count)
-
-            range_vals = {
-                'max_x': max_x,
-                'min_x': min_x,
-                'max_y': max_y,
-                'min_y': min_y,
-                'max_z': max_z,
-                'min_z': min_z
-            }
+            x_y_z = list(zip(x_data, y_data, z_data))
+            low_cv = min(min(self.Counter(labels).values()), 5)
             return (self.np.array(x_y_z), self.np.array(labels), low_cv,
                     range_vals)
 
@@ -269,15 +256,19 @@ class SVM_Helper:
                  label_data,
                  low_cv=1,
                  length=51,
-                 range_vals='Sample'):
+                 range_vals='Sample',
+                 use_map=False,
+                 prediction_map=None):
 
         if method == 'Sample Data':
             return {'test_data': self.coords, 'result': self.colors}
+
         if range_vals == 'Sample':
             full_map = self.set_map(self.sample_range)
-
-        else:
+        elif not use_map:
             full_map = self.set_map(range_vals)
+        else:
+            full_map = prediction_map
 
         if method == 'Linear':
             return self.Lin_Kernel(training_data, label_data, full_map, low_cv)

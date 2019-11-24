@@ -20,6 +20,7 @@ from random import shuffle
 #### start svm dependencies ############
 import json
 import numpy as np
+from collections import Counter
 ### end parser dependencies ################
 from sklearn.linear_model import LogisticRegression
 #from sklearn.model_selection import train_test_split
@@ -55,7 +56,8 @@ svm_dependencies = {
     'json': json,
     "preprocessing": preprocessing,
     "GridSearchCV": GridSearchCV,
-    "SVC": SVC
+    "SVC": SVC,
+    "Counter": Counter
 }
 svm_dependencies['LogisticRegression'] = LogisticRegression
 svm_dependencies['KNeighborsClassifier'] = KNeighborsClassifier
@@ -178,7 +180,7 @@ def get_model():
     method = request.form.get('runMethod', '')
     data_set = request.form.get('data_set')
     #    print("args ", data_set, " ", method)
-    training_data = [[]]
+    training_data = np.array([[]])
     label_data = []
     low_cv = 5
     length = 51
@@ -195,6 +197,12 @@ def get_model():
         length = int(len(label_data) / 2)
 
     # need to call .tolist() as numpy array is not serializable
+    if training_data.shape == (1, 0):
+        return jsonify({
+            "Status": "Failed",
+            "Error": "Could not parse request"
+        })
+
     user_request = {
         "method": method,
         "training_data": training_data.tolist(),
@@ -218,7 +226,81 @@ def get_model():
                         daemon=True)
     new_thread.start()
 
-    return jsonify(request_repr_id)
+    return jsonify({"Status": "Success", "Id": request_repr_id})
+
+
+@app.route("/api/train_model", methods=["POST"])
+def api_train():
+    data = request.get_json(force=True)
+    training_data = data.get("training_data")
+    labels = data.get("labels")
+    testing_data = data.get("testing_data")
+    method = data.get("method")
+
+    if not testing_data or not method or not labels or not training_data:
+        return jsonify({
+            "Status": "Failed",
+            "Error": "One or more fields missing",
+            "Usage": {
+                "training_data": "(2D Array)",
+                "labels": "(2D Array)",
+                "testing_data": "(Array)",
+                "method": "(String)"
+            },
+            "Supplied": {
+                "training_data": training_data,
+                "labels": labels,
+                "testing_data": testing_data,
+                "method": method
+            }
+        })
+
+    if len(training_data) != len(labels):
+        return jsonify({
+            "Status": "Failed",
+            "Error": "label data and training data unequal lengths."
+        })
+    length = int(len(labels) / 2)
+    cv = min(min(Counter(labels).values()), 5)
+    user_request = {
+        "method": method,
+        "training_data": training_data,
+        "label_data": labels
+    }
+
+    user_request_repr = json.dumps(user_request)
+    request_repr_id = hashlib.sha1(user_request_repr.encode()).hexdigest()
+
+    training_data = np.array(training_data)
+    labels = np.array(labels)
+    testing_data = np.array(testing_data)
+
+    if len(training_data.shape) < 2 or len(
+            testing_data.shape
+    ) < 2 or training_data.shape[1] != testing_data.shape[1]:
+        return jsonify({
+            "Error":
+            "label and training data either are not 2 dimensions or are not equal"
+        })
+
+    run_test_kwargs = {
+        "method": method,
+        "training_data": np.array(training_data),
+        "label_data": np.array(labels),
+        "low_cv": cv,
+        "length": length,
+        "range_vals": False,
+        "use_map": True,
+        "prediction_map": testing_data
+    }
+    ## start thread to handle training the SVM, return ID so can lookup in db when done.
+    new_thread = Thread(target=train_svm_from_data_then_update_db,
+                        args=(svm_helper, mongo_helper, run_test_kwargs,
+                              request_repr_id),
+                        daemon=True)
+    new_thread.start()
+
+    return jsonify({"Status": "Success", "Id": request_repr_id})
 
 
 @app.route("/retrieve_model/<string:model_id>", methods=["GET"])

@@ -242,7 +242,11 @@ const showModel = (SVMmethod, chartId) => {
     data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
   })
     .done(function(data) {
-      retrieveModel(SVMmethod, chartId, data);
+      if (data.Status == "Success") {
+        retrieveModel(SVMmethod, chartId, data.Id);
+      } else {
+        alert("Something went wrong.");
+      }
     })
     .fail(function(error) {
       alert(error);

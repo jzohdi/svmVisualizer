@@ -84,6 +84,7 @@ def train_svm_from_data_then_update_db(svm_helper, mongo_helper,
     results = svm_helper.run_test(**svm_run_test_kwargs)
     final_data = {
         "_id": repr_id,
+        "method": svm_run_test_kwargs.get("method"),
         "test_data": results.get('test_data').tolist(),
         'result': results.get('result').tolist(),
         'confidence': results.get('confidence'),

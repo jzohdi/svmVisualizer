@@ -122,10 +122,94 @@
        </div>
     </div>
   </div>
+  <div class='container'>
+    <div class="api-header"><h1>API Endpoints</h1></div>
+    <div class="endpoint-section">
+    <div><h3> <code>POST</code> /api/train_model </h3></div>
+    <h4>Body</h4>
+    <pre class="command-line">
+      <span class="output">{</span>
+      <span class="output">  "training_data" : (2D Array) Array of data used to train the model. There is no limit on dimension size of data, but each data point should be same size,</span>
+      <span class="output">  "labels": (1D Array) Array of labels cooresponding to training_data. Labels will be paired by index to training_data and both arrays should be same length,</span>
+      <span class="output">  "testing_data": (2D Array) Array of data to be tested and sent in output. Dimension of each element in array should match the dimension size used to train model,</span>
+      <span class="output">  "method": (String) Choose one of ("Linear", "Polynomial", "RBF", "Log Regression", "KNN", "Tree", "Forest") </span>
+      <span class="output">}</span>
+    </pre>
+    <h4>Response</h4>
+    <pre class="command-line">
+      <span class="output">{</span>
+      <span class="output">  "Id" : (String) Id to be used to retrieve final output from retrieve_model endpoint,</span>
+      <span class="output">  "Status": (String) "Success" or "Failed",</span>
+      <span class="output">  "Error" : (String - Optional) Error message if one occurred,</span>
+      <span class="output">}</span>
+    </pre>    
+    <h4 style="padding-top: 40px;">Example</h4>
+    <pre class="command-line">
+      <span class="command">"POST" https://j-zohdi.herokuapp.com/api/train_model</span>
+      <span class="output">{</span>
+      <span class="output">  "training_data" : [[0, 1, 0], [1, 1, 1], [0, 2, 3], [0 , 3, 3], [ 1, 2, 3], [0, 2, 3], [ 1, 3, 3], [2, 3, 4], [1, 3, 5], [2, 6, 3]],</span>
+      <span class="output">  "labels": ["no", "no", "yes", "no", "yes", "yes", "yes", "yes", "no", "no"],</span>
+      <span class="output">  "testing_data": [[3, 0, 1]],</span>
+      <span class="output">  "method": "RBF"</span>
+      <span class="output">}</span>
+    </pre>
+    <pre class="command-line">
+      <span class="output">{</span>
+      <span class="output">  "Id" : "81f8cc796fda2a0dc2475f5203621a918a963e8e",</span>
+      <span class="output">  "Status": "Success",</span>
+      <span class="output">}</span>
+    </pre>   
   </div>
+  <div class="endpoint-section">
+    <div><h3> <code>GET</code> /retrieve_model/{Id} </h3></div>
+    <h4>Response</h4>
+    <pre class="command-line">
+      <span class="output">{</span>
+        <span class="output"> "confidence": (1D Array) Array of confidence that the method produced for each testing_data element. Paired by index,</span>
+        <span class="output"> "method": (String) Method specified from initial Post to train_model,</span>
+        <span class="output"> "params": (Object) Parameters found to produced best model of data for specified method,</span>
+        <span class="output"> "result": (1D Array) Array of labels produced for training_data. Paired by index,</span>
+        <span class="output"> "score": (Float) Accuracy scored by cross fold validation with initial Post of training_data ,</span>
+        <span class="output"> "status": (String) "Finished" or "Processing" - if id does not exist, this method will return "Processing",</span>
+        <span class="output"> "test_data": (2D Array) testing_data using in initial Post to train_model </span>
+      <span class="output">}</span>
+    </pre>    
+    <h4 style="padding-top: 40px;">Example</h4>
+    <pre class="command-line">
+      <span class="command">"GET" https://j-zohdi.herokuapp.com/retrieve_model/81f8cc796fda2a0dc2475f5203621a918a963e8e</span>      
+      <span class="output">{</span>
+      <span class="output"> "confidence": [0.5508220310237408],</span>
+      <span class="output"> "method": "RBF",</span>
+      <span class="output"> "params": { "C": 0.1, "gamma": 0.1 },</span>
+      <span class="output"> "result": ["no"],</span>
+      <span class="output"> "score": 0.8,</span>
+      <span class="output"> "status": "Finished",</span>
+      <span class="output"> "test_data": [[3, 0, 1]]</span>
+      <span class="output">}</span>
+    </pre>   
+  </div>  
+</div>
   <div id='modal-holder'></div>
   
   </body>
+  <style>
+    .command-line {
+      background-color: #444;
+      color: #fff;
+      border-radius: 3px;
+      border: none;
+      position: relative;
+    }
+    .command-line span.comment {
+      color: #ccc;
+    }
+    .endpoint-section{
+      background-color: #fae9d4;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 35px;
+    }
+  </style>
   <script src="{{ url_for('static', filename='MLdata.js') }}"></script>
   <script type='text/javascript'>
     const MODAL_DIV =

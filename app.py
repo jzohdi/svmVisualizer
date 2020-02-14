@@ -322,6 +322,11 @@ def retrieve_model(model_id):
     return jsonify({"error": "Something went wrong."})
 
 
+@app.route("/svm_plot", methods=["GET"])
+def svm_plot():
+    return render_template("prediction_chart.html")
+
+
 @app.context_processor
 def override_url_for():
     return dict(url_for=dated_url_for)

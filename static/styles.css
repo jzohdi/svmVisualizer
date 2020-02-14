@@ -149,6 +149,9 @@ body {
   margin-bottom: 15px;
   font-size: calc(12px + 0.5vw);
 }
+#myChart-message {
+  font-size: 20px;
+}
 .info-button:hover {
   background-color: black;
   color: white;

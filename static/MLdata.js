@@ -1,7 +1,14 @@
-let waiting = false;
+// goToPage(SVMmethod, chartId, data.Id);
 let myChartCreated = false;
 let defaultAnimation = "easeInQuint";
 let CURRENT_DATA = "Sample";
+
+const goToPage = (SVMmethod, chartId, dataId) => {
+  const url =
+    "/svm_plot?params=" +
+    JSON.stringify({ method: SVMmethod, chart: chartId, data: dataId });
+  window.open(url, "_blank");
+};
 
 const sizeFor2DPoint = () => {
   const windowSize = window.innerWidth;
@@ -58,43 +65,101 @@ const representData = [
   { color: "rgb(93, 1, 150)", label: "Classification 4" }
 ];
 
-const createNewDataObject = (
-  newValue,
-  newIndex,
-  dimensions,
-  confidence = false
-) => {
-  /* if the index is less than the default color array length, choose
-  the color from the array. Otherwise, get a random color.*/
-  const color =
-      newIndex < representData.length
-        ? representData[newIndex].color
-        : getRandomColor(),
-    newObj = {};
+const getColorForObject = index => {
+  if (index < representData.length) {
+    return representData[index].color;
+  }
+  return getRandomColor();
+};
 
+const newJsonObject = confidence => {
+  const newObj = {};
   newObj.x = [];
   newObj.y = [];
   if (confidence) {
     newObj.text = ["confidence: " + confidence.toFixed(8)];
   }
   newObj.mode = "markers";
+  return newObj;
+};
+
+const add3dSettings = (object, color, confidence) => {
+  object.type = "scatter3d";
+  object.z = [];
+  object.marker = getMarkerObject(
+    sizeFor3DPoint(),
+    color,
+    confidence,
+    "circle"
+  );
+  return object;
+};
+
+const addSettingsToNewObj = (object, dimensions, color, confidence) => {
   if (dimensions === 2) {
-    newObj.type = "scatter";
-    newObj.marker = getMarkerObject(sizeFor2DPoint(), color, confidence);
-
-    return newObj;
-  } else {
-    newObj.type = "scatter3d";
-    newObj.z = [];
-    newObj.marker = getMarkerObject(
-      sizeFor3DPoint(),
-      color,
-      confidence,
-      "circle"
-    );
-
-    return newObj;
+    object.type = "scatter";
+    object.marker = getMarkerObject(sizeFor2DPoint(), color, confidence);
+    return object;
   }
+  return add3dSettings(object, color, confidence);
+};
+
+const createNewDataObject = (newIndex, dimensions, confidence = false) => {
+  /* if the index is less than the default color array length, choose
+  the color from the array. Otherwise, get a random color.*/
+  const color = getColorForObject(newIndex);
+  const newObj = newJsonObject(confidence);
+
+  return addSettingsToNewObj(newObj, dimensions, color, confidence);
+};
+
+const createDataPoint = (dataPointParams, dimensions) => {
+  const data = dataPointParams.data;
+  const newDataObject = createNewDataObject(
+    dataPointParams.index,
+    dimensions,
+    dataPointParams.confidence
+  );
+  newDataObject.x.push(data[0]);
+  newDataObject.y.push(data[1]);
+  if (dimensions > 2) {
+    newDataObject.z.push(data[2]);
+  }
+  return newDataObject;
+};
+
+const getClassesIndex = (classes, value) => {
+  if (classes.hasOwnProperty(value)) {
+    return classes[value];
+  }
+  classes[value] = Object.keys(classes).length;
+  return classes[value];
+};
+
+const mapConfidence = (confidenceSet, index) => {
+  if (confidenceSet == null) {
+    return false;
+  }
+  return mapData(confidenceSet[index], 0.49, 1, 0, 0.9);
+};
+
+/**
+ *
+ * @param {object} classes
+ * @param {label} value label for the data point clasified
+ * @param {float} pointConfidence confidence of for the data point label
+ * @param {data point} data
+ */
+const getDataPointArgs = (classes, value, pointConfidence, data) => {
+  const confidence = mapConfidence(pointConfidence);
+  const newObjectClassIndex = getClassesIndex(classes, value);
+  const dataPointArgs = {
+    value: value,
+    index: newObjectClassIndex,
+    confidence: confidence,
+    data: data
+  };
+  return dataPointArgs;
 };
 
 const parse2dData = data_set => {
@@ -102,82 +167,52 @@ const parse2dData = data_set => {
   const finalData = [];
 
   data_set.result.forEach((value, index) => {
-    let confidence = false;
-
-    if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 1);
-    }
-
-    if (!classes.hasOwnProperty(value)) {
-      const newIndex = Object.keys(classes).length;
-      const newDataObject = createNewDataObject(value, newIndex, 2, confidence);
-      classes[value] = newIndex;
-
-      newDataObject.x.push(data_set.test_data[index][0]);
-      newDataObject.y.push(data_set.test_data[index][1]);
-
-      finalData.push(newDataObject);
-    } else {
-      const finalIndex = classes[value];
-      const newDataObject = createNewDataObject(
-        value,
-        finalIndex,
-        2,
-        confidence
-      );
-      newDataObject.x.push(data_set.test_data[index][0]);
-      newDataObject.y.push(data_set.test_data[index][1]);
-      finalData.push(newDataObject);
-    }
+    const dataPointArgs = getDataPointArgs(
+      classes,
+      value,
+      data_set["confidence"],
+      data_set.test_data[index]
+    );
+    const dataPointObject = createDataPoint(dataPointArgs, 2);
+    finalData.push(dataPointObject);
   });
   return finalData;
 };
 
+/**
+ * takes in 3d data json and returns array of data points used in creating
+ * chart js. the data returned must be parsed to create the correct input
+ * for Plotly object
+ *
+ * @param {object} data_set  data_set json returned by retrieveModel
+ * @returns {array} finalData array of data points;
+ */
 const parse3dData = data_set => {
   const classes = {};
   const finalData = [];
   data_set.result.forEach((value, index) => {
-    let confidence = false;
-
-    if (data_set["confidence"] != null) {
-      confidence = mapData(data_set["confidence"][index], 0.49, 1, 0, 0.9);
-    }
-
-    if (!classes.hasOwnProperty(value)) {
-      const newIndex = Object.keys(classes).length;
-      newDataObject = createNewDataObject(value, newIndex, 3, confidence);
-      classes[value] = newIndex;
-
-      newDataObject.x.push(data_set.test_data[index][0]);
-      newDataObject.y.push(data_set.test_data[index][1]);
-      newDataObject.z.push(data_set.test_data[index][2]);
-
-      finalData.push(newDataObject);
-    } else {
-      const finalIndex = classes[value];
-      newDataObject = createNewDataObject(value, finalIndex, 3, confidence);
-      newDataObject.x.push(data_set.test_data[index][0]);
-      newDataObject.y.push(data_set.test_data[index][1]);
-      newDataObject.z.push(data_set.test_data[index][2]);
-      finalData.push(newDataObject);
-    }
+    const dataPointArgs = getDataPointArgs(
+      classes,
+      value,
+      data_set["confidence"],
+      data_set.test_data[index]
+    );
+    const dataPointObject = createDataPoint(dataPointArgs, 3);
+    finalData.push(dataPointObject);
   });
   return finalData;
 };
+
 const cacheData = {};
 
 const runMethod = chartId => {
-  if (!waiting) {
-    const selectedText = $("#select-method :selected").text(); // The text content of the selected option
-    const selectedVal = $("#select-method").val();
-    if (cacheData.hasOwnProperty(selectedVal) && CURRENT_DATA === "Sample") {
-      createScatter(cacheData[selectedVal].plot, chartId);
-      $("#" + chartId + "-message").html(
-        "Best Params: " + string(cacheData[selectedVal].params)
-      );
-    } else {
-      showModel(selectedVal, chartId);
-    }
+  console.log("running method...");
+  const selectedText = $("#select-method :selected").text(); // The text content of the selected option
+  const selectedVal = $("#select-method").val();
+  if (cacheData.hasOwnProperty(selectedVal) && CURRENT_DATA === "Sample") {
+    createScatter(cacheData[selectedVal].plot, chartId);
+  } else {
+    showModel(selectedVal, chartId);
   }
 };
 
@@ -205,45 +240,50 @@ const parseModelData = (data, SVMmethod, chartId) => {
   }
 
   createScatter(dataSet, chartId);
-  waiting = false;
   console.log("method call successful");
-  $("#" + chartId + "-message").html("Best Params: " + string(bestParams));
 };
 
-const retrieveModel = (SVMmethod, chartId, model_id) => {
+const showSamplePlot = (SVMmethod, chartId, model_id) => {
   // Do retrive model once at beginning to check if the data set is cached in data base.
   $.get("/retrieve_model/" + model_id).done(function(data) {
     if (data["status"] === "Finished") {
       parseModelData(data, SVMmethod, chartId);
     } else if (data.hasOwnProperty("error")) {
-      clearInterval(intervalID);
+      alert(data.error);
     } else {
-      let intervalID = null;
-      intervalID = setInterval(function() {
-        $.get("/retrieve_model/" + model_id).done(function(data) {
-          if (data["status"] === "Finished") {
-            parseModelData(data, SVMmethod, chartId);
-            clearInterval(intervalID);
-          } else if (data.hasOwnProperty("error")) {
-            clearInterval(intervalID);
-          }
-        });
-      }, 5000);
+      alert("Something went wrong getting sample data.");
     }
   });
 };
 
-const showModel = (SVMmethod, chartId) => {
-  // console.log(CURRENT_DATA);
-  waiting = true;
-  $("#" + chartId + "-message").html("processing...");
+const initSampleData = () => {
+  const SVMmethod = "Sample Data";
+  const chartId = "myChart";
   $.post("/train_model/", {
     runMethod: SVMmethod,
     data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
   })
     .done(function(data) {
       if (data.Status == "Success") {
-        retrieveModel(SVMmethod, chartId, data.Id);
+        showSamplePlot(SVMmethod, chartId, data.Id);
+      } else {
+        alert("Something went wrong.");
+      }
+    })
+    .fail(function(error) {
+      alert(error);
+    });
+};
+
+const showModel = (SVMmethod, chartId) => {
+  // console.log(CURRENT_DATA);
+  $.post("/train_model/", {
+    runMethod: SVMmethod,
+    data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
+  })
+    .done(function(data) {
+      if (data.Status == "Success") {
+        goToPage(SVMmethod, chartId, data.Id);
       } else {
         alert("Something went wrong.");
       }
@@ -391,10 +431,6 @@ const transform3dData = twoDarray => {
     newDataObj.test_data.push([value[0], value[1], value[2]]);
   });
   return newDataObj;
-};
-
-const initSampleData = () => {
-  showModel("Sample Data", "myChart");
 };
 
 const initMethodChart = () => {

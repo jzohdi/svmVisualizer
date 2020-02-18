@@ -43,7 +43,7 @@ const createScatter = (dataSet, targetCanvas) => {
   layout.height = dimensions.d;
   // layout["margin-left"] = dimensions["margin-left"];
   $("#" + targetCanvas).empty();
-  Plotly.newPlot(targetCanvas, dataSet, layout, { resonsive: true });
+  Plotly.newPlot(targetCanvas, dataSet, layout);
 };
 
 const sizeFor2DPoint = () => {
@@ -95,10 +95,10 @@ const getRandomColor = () => {
   return color;
 };
 const representData = [
-  { color: "rgb(255, 99, 132)", label: "Classification 1" },
-  { color: "rgb(0, 124, 249)", label: "Classification 2" },
-  { color: "rgb(25, 150, 100)", label: "Classification 3" },
-  { color: "rgb(93, 1, 150)", label: "Classification 4" }
+  { color: "rgba(255, 99, 132)", label: "Classification 1" },
+  { color: "rgba(0, 124, 249)", label: "Classification 2" },
+  { color: "rgba(25, 150, 100)", label: "Classification 3" },
+  { color: "rgba(93, 1, 150)", label: "Classification 4" }
 ];
 
 const getColorForObject = index => {
@@ -120,7 +120,7 @@ const newJsonObject = confidence => {
 };
 
 const add3dSettings = (object, color, confidence) => {
-  object.type = "scatter3d";
+  object.type = "scatter";
   object.z = [];
   object.marker = getMarkerObject(
     sizeFor3DPoint(),
@@ -176,7 +176,7 @@ const mapConfidence = (confidenceSet, index) => {
   if (confidenceSet == null) {
     return false;
   }
-  return mapData(confidenceSet[index], 0.49, 1, 0, 0.9);
+  return mapData(confidenceSet[index], 0.49, 1, 0.6, 0.99);
 };
 
 /**
@@ -210,7 +210,7 @@ const parse2dData = data_set => {
         data_set["confidence"][index],
         0.49,
         1,
-        0,
+        0.4,
         1
       );
     }
@@ -228,9 +228,47 @@ const parse2dData = data_set => {
  * @param {object} data_set  data_set json returned by retrieveModel
  * @returns {array} finalData array of data points;
  */
+// const parse3dData = data_set => {
+//   const classes = {};
+//   const finalData = [];
+//   data_set.result.forEach((value, index) => {
+//     const dataPointArgs = getDataPointArgs(
+//       classes,
+//       value,
+//       data_set.test_data[index]
+//     );
+//     // console.log("confidence..", data_set["confidence"][index]);
+//     if (data_set["confidence"] != null) {
+//       dataPointArgs["confidence"] = mapData(
+//         data_set["confidence"][index],
+//         0.49,
+//         1,
+//         0,
+//         0.9
+//       );
+//     }
+//     const dataPointObject = createDataPoint(dataPointArgs, 3);
+//     finalData.push(dataPointObject);
+//   });
+//   return finalData;
+// };
+
 const parse3dData = data_set => {
   const classes = {};
-  const finalData = [];
+  const finalData = {
+    x: [],
+    y: [],
+    z: [],
+    mode: "markers",
+    text: [],
+    marker: {
+      size: 10,
+      color: [],
+      // opacity: [],
+      symbol: "circle"
+    },
+    type: "scatter3d"
+  };
   data_set.result.forEach((value, index) => {
     const dataPointArgs = getDataPointArgs(
       classes,
@@ -243,14 +281,25 @@ const parse3dData = data_set => {
         data_set["confidence"][index],
         0.49,
         1,
-        0,
-        0.9
+        0.4,
+        0.99
       );
     }
     const dataPointObject = createDataPoint(dataPointArgs, 3);
-    finalData.push(dataPointObject);
+    // finalData.push(dataPointObject);
+    finalData.x.push(dataPointObject.x[0]);
+    finalData.y.push(dataPointObject.y[0]);
+    finalData.z.push(dataPointObject.z[0]);
+    const color = dataPointObject.marker.color.replace(
+      ")",
+      ", " + dataPointObject.marker.opacity.toFixed(4).toString() + ")"
+    ); //dataPointObject.marker.opacity.toString()
+    finalData.marker.color.push(color);
+    finalData.text.push(dataPointObject.text[0]);
+    // finalData.marker.opacity.push(dataPointObject.marker.opacity);
   });
-  return finalData;
+  console.log(finalData);
+  return [finalData];
 };
 
 const parseModelData = (data, SVMmethod, chartId) => {

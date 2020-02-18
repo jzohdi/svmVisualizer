@@ -198,10 +198,48 @@ const parse3dData = data_set => {
       data_set.test_data[index]
     );
     const dataPointObject = createDataPoint(dataPointArgs, 3);
+    console.log(dataPointObject);
     finalData.push(dataPointObject);
   });
   return finalData;
 };
+// const parse3dData = data_set => {
+//   const classes = {};
+//   const finalData = {
+//     x: [],
+//     y: [],
+//     z: [],
+//     mode: "markers",
+//     text: [],
+//     marker: {
+//       size: 10,
+//       color: [],
+//       // opacity: [],
+//       symbol: "circle"
+//     },
+//     type: "scatter3d"
+//   };
+//   data_set.result.forEach((value, index) => {
+//     const dataPointArgs = getDataPointArgs(
+//       classes,
+//       value,
+//       data_set.test_data[index]
+//     );
+//     // console.log("confidence..", data_set["confidence"][index]);
+//     const dataPointObject = createDataPoint(dataPointArgs, 3);
+//     // finalData.push(dataPointObject);
+//     finalData.x.push(dataPointObject.x[0]);
+//     finalData.y.push(dataPointObject.y[0]);
+//     finalData.z.push(dataPointObject.z[0]);
+//     const color = dataPointObject.marker.color;
+//     //dataPointObject.marker.opacity.toString()
+//     finalData.marker.color.push(color);
+//     finalData.text.push(dataPointObject.text[0]);
+//     // finalData.marker.opacity.push(dataPointObject.marker.opacity);
+//   });
+//   console.log(finalData);
+//   return [finalData];
+// };
 
 const cacheData = {};
 

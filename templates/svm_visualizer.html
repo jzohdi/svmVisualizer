@@ -125,8 +125,8 @@
   <div class='container'>
     <div class="api-header"><h1>API Endpoints</h1></div>
     <div class="endpoint-section">
-    <div><h3> <code>POST</code> /api/train_model </h3></div>
-    <h4>Body</h4>
+    <div class="endpoint-header"><h2> <code>POST</code> /api/train_model </h2></div>
+    <h4 class="endpoint-body">Body</h4>
     <pre class="command-line">
       <span class="output">{</span>
       <span class="output">  "training_data" : (2D Array) Array of data used to train the model. There is no limit on dimension size of data, but each data point should be same size,</span>
@@ -135,7 +135,7 @@
       <span class="output">  "method": (String) Choose one of ("Linear", "Polynomial", "RBF", "Log Regression", "KNN", "Tree", "Forest") </span>
       <span class="output">}</span>
     </pre>
-    <h4>Response</h4>
+    <h4 class="endpoint-response">Response</h4>
     <pre class="command-line">
       <span class="output">{</span>
       <span class="output">  "Id" : (String) Id to be used to retrieve final output from retrieve_model endpoint,</span>
@@ -143,7 +143,7 @@
       <span class="output">  "Error" : (String - Optional) Error message if one occurred,</span>
       <span class="output">}</span>
     </pre>    
-    <h4 style="padding-top: 40px;">Example</h4>
+    <h4 class="endpoint-example">Example</h4>
     <pre class="command-line">
       <span class="command">"POST" https://j-zohdi.herokuapp.com/api/train_model</span>
       <span class="output">{</span>
@@ -161,8 +161,8 @@
     </pre>   
   </div>
   <div class="endpoint-section">
-    <div><h3> <code>GET</code> /retrieve_model/{Id} </h3></div>
-    <h4>Response</h4>
+    <div class="endpoint-header"><h2> <code>GET</code> /retrieve_model/{Id} </h2></div>
+    <h4 class="endpoint-response">Response</h4>
     <pre class="command-line">
       <span class="output">{</span>
         <span class="output"> "confidence": (1D Array) Array of confidence that the method produced for each testing_data element. Paired by index,</span>
@@ -174,7 +174,7 @@
         <span class="output"> "test_data": (2D Array) testing_data using in initial Post to train_model </span>
       <span class="output">}</span>
     </pre>    
-    <h4 style="padding-top: 40px;">Example</h4>
+    <h4 class="endpoint-example">Example</h4>
     <pre class="command-line">
       <span class="command">"GET" https://j-zohdi.herokuapp.com/retrieve_model/81f8cc796fda2a0dc2475f5203621a918a963e8e</span>      
       <span class="output">{</span>
@@ -202,12 +202,6 @@
     }
     .command-line span.comment {
       color: #ccc;
-    }
-    .endpoint-section{
-      background-color: #fae9d4;
-    border-radius: 5px;
-    padding: 10px;
-    margin-top: 35px;
     }
   </style>
   <script src="{{ url_for('static', filename='MLdata.js') }}"></script>

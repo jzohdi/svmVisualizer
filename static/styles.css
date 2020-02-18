@@ -218,3 +218,37 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
+
+.api-header {
+  color: white;
+  background-color: black;
+  padding: 4px;
+  text-align: center;
+  margin-top: 10vh;
+  margin-left: -85px;
+  margin-right: -85px;
+}
+.endpoint-header {
+  text-align: center;
+  padding: 1px;
+  border-bottom: 4px solid #c7254e;
+  margin-top: 5vh;
+}
+.endpoint-body {
+  color: white;
+  margin: 0px;
+  background-color: rgb(0, 124, 249); /* rgb(255, 99, 132); red */
+  padding: 12px;
+}
+.endpoint-response {
+  color: white;
+  margin: 0px;
+  background-color: rgb(25, 150, 100); /* rgb(255, 99, 132); red */
+  padding: 12px;
+}
+.endpoint-example {
+  color: white;
+  margin: 0px;
+  background-color: rgb(255, 99, 132); /* rgb(255, 99, 132); red */
+  padding: 12px;
+}

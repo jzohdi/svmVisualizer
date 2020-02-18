@@ -2,13 +2,17 @@ let waiting = false;
 let myChartCreated = false;
 let defaultAnimation = "easeInQuint";
 let CURRENT_DATA = "Sample";
+// TODO calculate these values based on the width of the chart and the number of data points.
+const sizeFor3dPoint = 10;
+const sizeFor2dPoint = 15;
 
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {
     return window.innerWidth * 0.85;
   } else {
-    return window.innerWidth * 0.7;
+    return 1200;
   }
+  // return Math.min(window.innerWidth, window.innerHeight);
 };
 
 const calculateDimension = () => {
@@ -21,8 +25,8 @@ const layout = {
   autosize: true,
   hovermode: "closest",
   showlegend: false,
-  width: window.innerWidth - 100,
-  height: window.innerWidth - 100,
+  width: 800, // default values for width and height
+  height: 800,
   legend: {
     x: 0.3,
     y: 1.1
@@ -38,22 +42,12 @@ const layout = {
 };
 
 const createScatter = (dataSet, targetCanvas) => {
-  const dimensions = calculateDimension();
-  layout.width = dimensions.d;
-  layout.height = dimensions.d;
+  const dimensions = getChartWidth();
+  layout.width = dimensions;
+  layout.height = dimensions;
   // layout["margin-left"] = dimensions["margin-left"];
   $("#" + targetCanvas).empty();
   Plotly.newPlot(targetCanvas, dataSet, layout);
-};
-
-const sizeFor2DPoint = () => {
-  const windowSize = window.innerWidth;
-  return windowSize / 100;
-};
-
-const sizeFor3DPoint = () => {
-  const windowSize = window.innerWidth;
-  return (windowSize * 2) / 100;
 };
 
 const deepCopy = obj => {
@@ -74,150 +68,114 @@ const mapData = (num, min_One, max_One, min_Out, max_Out) => {
 const string = data => {
   return JSON.stringify(data);
 };
-const getMarkerObject = (size, color, confidence, symbol = false) => {
-  const newObj = {
-    size: size,
-    color: color,
-    opacity: confidence ? confidence : 1
-  };
-  if (symbol) {
-    newObj["symbol"] = symbol;
-  }
-  return newObj;
-};
 
-const getRandomColor = () => {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-};
 const representData = [
-  { color: "rgba(255, 99, 132)", label: "Classification 1" },
-  { color: "rgba(0, 124, 249)", label: "Classification 2" },
-  { color: "rgba(25, 150, 100)", label: "Classification 3" },
-  { color: "rgba(93, 1, 150)", label: "Classification 4" }
+  { color: "rgba(255, 99, 132, alpha)", label: "Classification 1" },
+  { color: "rgba(0, 124, 249, alpha)", label: "Classification 2" },
+  { color: "rgba(25, 150, 100, alpha)", label: "Classification 3" },
+  { color: "rgba(93, 1, 150, alpha)", label: "Classification 4" }
 ];
 
-const getColorForObject = index => {
-  if (index < representData.length) {
-    return representData[index].color;
+const randomRGBA = _ => {
+  var o = Math.round,
+    r = Math.random,
+    s = 255;
+  return "rgba(" + o(r() * s) + "," + o(r() * s) + "," + o(r() * s) + ",alpha)";
+};
+
+const getNextColor = nextIndex => {
+  if (nextIndex < representData.length) {
+    return representData[nextIndex].color;
   }
-  return getRandomColor();
+  return randomRGBA();
 };
 
-const newJsonObject = confidence => {
-  const newObj = {};
-  newObj.x = [];
-  newObj.y = [];
-  if (confidence) {
-    newObj.text = ["confidence: " + confidence.toFixed(8)];
+const getColorForValue = (usedColorsDict, value) => {
+  if (usedColorsDict.hasOwnProperty(value)) {
+    return usedColorsDict[value];
   }
-  newObj.mode = "markers";
-  return newObj;
+  usedColorsDict[value] = getNextColor(Object.keys(usedColorsDict).length);
+  return usedColorsDict[value];
 };
 
-const add3dSettings = (object, color, confidence) => {
-  object.type = "scatter";
-  object.z = [];
-  object.marker = getMarkerObject(
-    sizeFor3DPoint(),
-    color,
-    confidence,
-    "circle"
-  );
-  return object;
-};
-
-const addSettingsToNewObj = (object, dimensions, color, confidence) => {
-  if (dimensions === 2) {
-    object.type = "scatter";
-    object.marker = getMarkerObject(sizeFor2DPoint(), color, confidence);
-    return object;
-  }
-  return add3dSettings(object, color, confidence);
-};
-
-const createNewDataObject = (newIndex, dimensions, confidence = false) => {
-  /* if the index is less than the default color array length, choose
-  the color from the array. Otherwise, get a random color.*/
-  const color = getColorForObject(newIndex);
-  const newObj = newJsonObject(confidence);
-
-  return addSettingsToNewObj(newObj, dimensions, color, confidence);
-};
-
-const createDataPoint = (dataPointParams, dimensions) => {
-  const data = dataPointParams.data;
-  const newDataObject = createNewDataObject(
-    dataPointParams.index,
-    dimensions,
-    dataPointParams.confidence
-  );
-  newDataObject.x.push(data[0]);
-  newDataObject.y.push(data[1]);
-  if (dimensions > 2) {
-    newDataObject.z.push(data[2]);
-  }
-  return newDataObject;
-};
-
-const getClassesIndex = (classes, value) => {
-  if (classes.hasOwnProperty(value)) {
-    return classes[value];
-  }
-  classes[value] = Object.keys(classes).length;
-  return classes[value];
-};
-
-const mapConfidence = (confidenceSet, index) => {
+const mapConfidence = (confidenceSet, index, minScale) => {
   if (confidenceSet == null) {
     return false;
   }
-  return mapData(confidenceSet[index], 0.49, 1, 0.6, 0.99);
+  return mapData(confidenceSet[index], 0.49, 1, minScale, 0.99);
 };
 
-/**
- *
- * @param {object} classes
- * @param {label} value label for the data point clasified
- * @param {data point} data
- */
-const getDataPointArgs = (classes, value, data) => {
-  const newObjectClassIndex = getClassesIndex(classes, value);
-  const dataPointArgs = {
-    value: value,
-    index: newObjectClassIndex,
-    data: data
+const createNew2dTrace = value => {
+  return {
+    x: [],
+    y: [],
+    mode: "markers",
+    name: value,
+    text: [],
+    marker: {
+      size: sizeFor2dPoint,
+      color: []
+    },
+    type: "scatter"
   };
-  return dataPointArgs;
+};
+
+const createNew3dTrace = value => {
+  return {
+    x: [],
+    y: [],
+    z: [],
+    mode: "markers",
+    name: value,
+    text: [],
+    marker: {
+      size: sizeFor3dPoint,
+      color: [],
+      // opacity: [],
+      symbol: "circle"
+    },
+    type: "scatter3d"
+  };
+};
+
+const getTraceForValue = (dictionaryOfTraces, value, dimensions) => {
+  if (dictionaryOfTraces.hasOwnProperty(value)) {
+    return dictionaryOfTraces[value];
+  }
+  if (dimensions === 3) {
+    dictionaryOfTraces[value] = createNew3dTrace(value);
+    return dictionaryOfTraces[value];
+  }
+  if (dimensions === 2) {
+    dictionaryOfTraces[value] = createNew2dTrace(value);
+    return dictionaryOfTraces[value];
+  }
+  console.log("getTraceForValue used incorrectly, args passed in: ", {
+    traces: dictionaryOfTraces,
+    value: value,
+    dimensions: dimensions
+  });
 };
 
 const parse2dData = data_set => {
-  const classes = {};
-  const finalData = [];
+  const colorForValue = {};
+  const traces = {};
 
   data_set.result.forEach((value, index) => {
-    const dataPointArgs = getDataPointArgs(
-      classes,
-      value,
-      data_set.test_data[index]
+    const trace = getTraceForValue(traces, value, 2);
+    const color = getColorForValue(colorForValue, value);
+    const confidence = mapConfidence(data_set["confidence"], index, 0);
+    const formattedRGBA = color.replace(
+      "alpha",
+      confidence.toFixed(6).toString()
     );
-    if (data_set["confidence"] != null) {
-      dataPointArgs["confidence"] = mapData(
-        data_set["confidence"][index],
-        0.49,
-        1,
-        0.4,
-        1
-      );
-    }
-    const dataPointObject = createDataPoint(dataPointArgs, 2);
-    finalData.push(dataPointObject);
+    trace.x.push(data_set.test_data[index][0]);
+    trace.y.push(data_set.test_data[index][1]);
+    trace.text.push("confidence: " + confidence.toFixed(8));
+    trace.marker.color.push(formattedRGBA);
   });
-  return finalData;
+
+  return Object.values(traces);
 };
 
 /**
@@ -228,78 +186,26 @@ const parse2dData = data_set => {
  * @param {object} data_set  data_set json returned by retrieveModel
  * @returns {array} finalData array of data points;
  */
-// const parse3dData = data_set => {
-//   const classes = {};
-//   const finalData = [];
-//   data_set.result.forEach((value, index) => {
-//     const dataPointArgs = getDataPointArgs(
-//       classes,
-//       value,
-//       data_set.test_data[index]
-//     );
-//     // console.log("confidence..", data_set["confidence"][index]);
-//     if (data_set["confidence"] != null) {
-//       dataPointArgs["confidence"] = mapData(
-//         data_set["confidence"][index],
-//         0.49,
-//         1,
-//         0,
-//         0.9
-//       );
-//     }
-//     const dataPointObject = createDataPoint(dataPointArgs, 3);
-//     finalData.push(dataPointObject);
-//   });
-//   return finalData;
-// };
-
 const parse3dData = data_set => {
-  const classes = {};
-  const finalData = {
-    x: [],
-    y: [],
-    z: [],
-    mode: "markers",
-    text: [],
-    marker: {
-      size: 10,
-      color: [],
-      // opacity: [],
-      symbol: "circle"
-    },
-    type: "scatter3d"
-  };
+  const colorForValue = {};
+  const traces = {};
+
   data_set.result.forEach((value, index) => {
-    const dataPointArgs = getDataPointArgs(
-      classes,
-      value,
-      data_set.test_data[index]
+    const trace = getTraceForValue(traces, value, 3);
+    const color = getColorForValue(colorForValue, value);
+    const confidence = mapConfidence(data_set["confidence"], index, 0.4);
+    const formattedRGBA = color.replace(
+      "alpha",
+      confidence.toFixed(3).toString()
     );
-    // console.log("confidence..", data_set["confidence"][index]);
-    if (data_set["confidence"] != null) {
-      dataPointArgs["confidence"] = mapData(
-        data_set["confidence"][index],
-        0.49,
-        1,
-        0.4,
-        0.99
-      );
-    }
-    const dataPointObject = createDataPoint(dataPointArgs, 3);
-    // finalData.push(dataPointObject);
-    finalData.x.push(dataPointObject.x[0]);
-    finalData.y.push(dataPointObject.y[0]);
-    finalData.z.push(dataPointObject.z[0]);
-    const color = dataPointObject.marker.color.replace(
-      ")",
-      ", " + dataPointObject.marker.opacity.toFixed(4).toString() + ")"
-    ); //dataPointObject.marker.opacity.toString()
-    finalData.marker.color.push(color);
-    finalData.text.push(dataPointObject.text[0]);
-    // finalData.marker.opacity.push(dataPointObject.marker.opacity);
+    trace.x.push(data_set.test_data[index][0]);
+    trace.y.push(data_set.test_data[index][1]);
+    trace.z.push(data_set.test_data[index][2]);
+    trace.text.push("confidence: " + confidence.toFixed(8));
+    trace.marker.color.push(formattedRGBA);
   });
-  console.log(finalData);
-  return [finalData];
+
+  return Object.values(traces);
 };
 
 const parseModelData = (data, SVMmethod, chartId) => {

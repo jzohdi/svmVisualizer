@@ -80,7 +80,7 @@ app = Flask(__name__)
 CORS(app)
 jsglue = JSGlue(app)
 
-app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+# app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 app.config["SESSION_FILE_DIR"] = mkdtemp()
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"

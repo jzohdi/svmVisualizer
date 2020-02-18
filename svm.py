@@ -299,8 +299,8 @@ class SVM_Helper:
         high_y = int(range_vals.get('max_x'))
 
         if range_vals.get('max_z', None) == None:
-            x_coords = self.np.linspace(low_x, high_x, 35).tolist()
-            y_coords = self.np.linspace(low_y, high_y, 35).tolist()
+            x_coords = self.np.linspace(low_x, high_x, 50).tolist()
+            y_coords = self.np.linspace(low_y, high_y, 50).tolist()
             for x_coord in x_coords:
                 for y_coord in y_coords:
                     full_map_coordinates.append([x_coord, y_coord])

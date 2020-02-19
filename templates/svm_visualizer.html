@@ -44,15 +44,19 @@
     <div class='container-fluid'>
       <div class="row header-text">
         <div class="col-xs-12">
-          <h2>2D/3D Support Vector Machine Visualizer: </h2>
+          <h2>2D/3D Support Vector Machine Visualizer</h2>
+          <button id='info-button' class="run-button info-button">What does this program do?</button>
           <p>All methods use scikit-learn GridSearchCV() with a range of parameters to find best results.</p>
           <input value="Github"type="button" class='run-button gitbutton' onclick="window.location.href='https://github.com/jzohdi/svmVisualizer/blob/master/svm.py';">
+          <input value="API" type="button" class="run-button gitbutton" id="api-button">
         </div>
       </div>
       <div class="row header-text2">
-        <div><button id='info-button' class="run-button info-button col-xs-offset-2">What does this program do?</button></div>
         <div class="col-sm-8 col-sm-offset-2">
-          <h4>Choose data and SVM method to run. By Default Sample Data is loaded.</h4>
+          <h4>1) Choose data (Sample Data is loaded by default) then click Run</h4>
+          <h4>2) Choose SVM method then click Run </h4>
+          <h4 style="color: red; font-weight: bold;">* Running method will render plot in a new tab *</h4>
+          <h4>* Manual Data box can be found below *</h4>
         </div>
       </div>
     </div>
@@ -60,22 +64,6 @@
       <div class="row">
         <div style='text-align:center;'class="col-lg-12">
           <div class='row'>
-            <div class='col-xs-6'>
-              <div class='choose-method'>
-              <h4>Choose Method :</h4>
-              <select id="select-method" style="margin-bottom: 10px;">
-                <option value="Linear">Linear Kernel</option>
-                <option value="Polynomial">Polynomial Kernel</option>
-                <option value="RBF">RBF Kernel</option>
-                <option value="Log Regression">Logistic Regression</option>
-                <option value="KNN">K Nearest Neighbors</option>
-                <option value="Tree">Decision Tree</option>
-                <option value="Forest">Random Forest</option>
-              </select>
-              <button class="run-button" onClick='runMethod("myChart")'>Run</button>
-              <p style="color: red; font-weight: bold;">Running method will render plot in a new tab.</p>
-            </div>
-          </div>
           <div class='col-xs-6'>
             <div class='choose-method'>
               <h4>Data to use:</h4>  
@@ -87,6 +75,21 @@
               <p id='manual-data-error'></p>
             </div>
           </div>
+          <div class='col-xs-6'>
+            <div class='choose-method'>
+            <h4>Choose Method :</h4>
+            <select id="select-method" style="margin-bottom: 10px;">
+              <option value="Linear">Linear Kernel</option>
+              <option value="Polynomial">Polynomial Kernel</option>
+              <option value="RBF">RBF Kernel</option>
+              <option value="Log Regression">Logistic Regression</option>
+              <option value="KNN">K Nearest Neighbors</option>
+              <option value="Tree">Decision Tree</option>
+              <option value="Forest">Random Forest</option>
+            </select>
+            <button class="run-button" onClick='runMethod("myChart")'>Run</button>
+          </div>
+        </div>
           </div>
           <!-- <canvas id="myChart" width="200" height="200"></canvas> -->
           <div id='myChart'></div>
@@ -122,73 +125,10 @@
        </div>
     </div>
   </div>
-  <div class='container'>
+  <div id="api-endpoints" class='container'>
     <div class="api-header"><h1>API Endpoints</h1></div>
-    <div class="endpoint-section">
-    <div class="endpoint-header"><h2> <code>POST</code> /api/train_model </h2></div>
-    <h4 class="endpoint-body">Body</h4>
-    <pre class="command-line">
-      <span class="output">{</span>
-      <span class="output">  "training_data" : (2D Array) Array of data used to train the model. There is no limit on dimension size of data, but each data point should be same size,</span>
-      <span class="output">  "labels": (1D Array) Array of labels cooresponding to training_data. Labels will be paired by index to training_data and both arrays should be same length,</span>
-      <span class="output">  "testing_data": (2D Array) Array of data to be tested and sent in output. Dimension of each element in array should match the dimension size used to train model,</span>
-      <span class="output">  "method": (String) Choose one of ("Linear", "Polynomial", "RBF", "Log Regression", "KNN", "Tree", "Forest") </span>
-      <span class="output">}</span>
-    </pre>
-    <h4 class="endpoint-response">Response</h4>
-    <pre class="command-line">
-      <span class="output">{</span>
-      <span class="output">  "Id" : (String) Id to be used to retrieve final output from retrieve_model endpoint,</span>
-      <span class="output">  "Status": (String) "Success" or "Failed",</span>
-      <span class="output">  "Error" : (String - Optional) Error message if one occurred,</span>
-      <span class="output">}</span>
-    </pre>    
-    <h4 class="endpoint-example">Example</h4>
-    <pre class="command-line">
-      <span class="command">"POST" https://j-zohdi.herokuapp.com/api/train_model</span>
-      <span class="output">{</span>
-      <span class="output">  "training_data" : [[0, 1, 0], [1, 1, 1], [0, 2, 3], [0 , 3, 3], [ 1, 2, 3], [0, 2, 3], [ 1, 3, 3], [2, 3, 4], [1, 3, 5], [2, 6, 3]],</span>
-      <span class="output">  "labels": ["no", "no", "yes", "no", "yes", "yes", "yes", "yes", "no", "no"],</span>
-      <span class="output">  "testing_data": [[3, 0, 1]],</span>
-      <span class="output">  "method": "RBF"</span>
-      <span class="output">}</span>
-    </pre>
-    <pre class="command-line">
-      <span class="output">{</span>
-      <span class="output">  "Id" : "81f8cc796fda2a0dc2475f5203621a918a963e8e",</span>
-      <span class="output">  "Status": "Success",</span>
-      <span class="output">}</span>
-    </pre>   
+   
   </div>
-  <div class="endpoint-section">
-    <div class="endpoint-header"><h2> <code>GET</code> /retrieve_model/{Id} </h2></div>
-    <h4 class="endpoint-response">Response</h4>
-    <pre class="command-line">
-      <span class="output">{</span>
-        <span class="output"> "confidence": (1D Array) Array of confidence that the method produced for each testing_data element. Paired by index,</span>
-        <span class="output"> "method": (String) Method specified from initial Post to train_model,</span>
-        <span class="output"> "params": (Object) Parameters found to produced best model of data for specified method,</span>
-        <span class="output"> "result": (1D Array) Array of labels produced for training_data. Paired by index,</span>
-        <span class="output"> "score": (Float) Accuracy scored by cross fold validation with initial Post of training_data ,</span>
-        <span class="output"> "status": (String) "Finished" or "Processing" - if id does not exist, this method will return "Processing",</span>
-        <span class="output"> "test_data": (2D Array) testing_data using in initial Post to train_model </span>
-      <span class="output">}</span>
-    </pre>    
-    <h4 class="endpoint-example">Example</h4>
-    <pre class="command-line">
-      <span class="command">"GET" https://j-zohdi.herokuapp.com/retrieve_model/81f8cc796fda2a0dc2475f5203621a918a963e8e</span>      
-      <span class="output">{</span>
-      <span class="output"> "confidence": [0.5508220310237408],</span>
-      <span class="output"> "method": "RBF",</span>
-      <span class="output"> "params": { "C": 0.1, "gamma": 0.1 },</span>
-      <span class="output"> "result": ["no"],</span>
-      <span class="output"> "score": 0.8,</span>
-      <span class="output"> "status": "Finished",</span>
-      <span class="output"> "test_data": [[3, 0, 1]]</span>
-      <span class="output">}</span>
-    </pre>   
-  </div>  
-</div>
   <div id='modal-holder'></div>
   
   </body>
@@ -252,6 +192,174 @@
       createModal("#modal-holder", MODAL_CONTENT);
     })
   </script>
- 
+  <script type="text/javascript">
+    const API_JSON = [
+      {
+        type : "POST",
+        endpoint: "/api/train_model",
+        id: 'api-train_model',
+        body: {
+          lines: ["{", 
+          '\t"training_data" : (2D Array) Array of data used to train the model. There is no limit on dimension size of data, but each data point should be same size,',
+          '\t"labels": (1D Array) Array of labels cooresponding to training_data. Labels will be paired by index to training_data and both arrays should be same length,',
+          '\t"testing_data": (2D Array) Array of data to be tested and sent in output. Dimension of each element in array should match the dimension size used to train model,',
+          '\t"method": (String) Choose one of ("Linear", "Polynomial", "RBF", "Log Regression", "KNN", "Tree", "Forest")',
+          '}']
+        },
+        response: {
+          lines: ['{',
+          '\t"Id" : (String) Id to be used to retrieve final output from retrieve_model endpoint,',
+          '\t"Status": (String) "Success" or "Failed",',
+          '\t"Error" : (String - Optional) Error message if one occurred,',
+          '}']
+        },
+        example: {
+          command: '"POST" https://j-zohdi.herokuapp.com/api/train_model',
+          lines: [
+            ['{',
+          '\t"training_data" : [[0, 1, 0], [1, 1, 1], [0, 2, 3], [0 , 3, 3], [ 1, 2, 3], [0, 2, 3], [ 1, 3, 3], [2, 3, 4], [1, 3, 5], [2, 6, 3]],',
+          '\t"labels": ["no", "no", "yes", "no", "yes", "yes", "yes", "yes", "no", "no"],',
+          '\t"testing_data": [[3, 0, 1]],',
+          '\t"method": "RBF"',
+          '}'],
+          ['{',
+          '\t"Id" : "81f8cc796fda2a0dc2475f5203621a918a963e8e",',
+          '\t"Status": "Success",',
+          '}']
+          ]
+        }
+      },
+      {
+        type: "GET",
+        endpoint: "/retrieve_model/{Id}",
+        id: '-retrieve_model-_Id_',
+        response: {
+          lines: ['{',
+          '\t"confidence": (1D Array) Array of confidence that the method produced for each testing_data element. Paired by index,',
+          '\t"method": (String) Method specified from initial Post to train_model,',
+          '\t"params": (Object) Parameters found to produced best model of data for specified method,',
+          '\t"result": (1D Array) Array of labels produced for training_data. Paired by index,',
+          '\t"score": (Float) Accuracy scored by cross fold validation with initial Post of training_data ,',
+          '\t"status": (String) "Finished" or "Processing" - if id does not exist, this method will return "Processing",',
+          '\t"test_data": (2D Array) testing_data using in initial Post to train_model',
+          '}'
+          ]
+        },
+        example: {
+          command:  '"GET" https://j-zohdi.herokuapp.com/retrieve_model/81f8cc796fda2a0dc2475f5203621a918a963e8e',
+          lines: [
+            ['{',
+            '\t"confidence": [0.5508220310237408],',
+            '\t"method": "RBF",',
+            '\t"params": { "C": 0.1, "gamma": 0.1 },',
+            '\t"result": ["no"],',
+            '\t"score": 0.8,',
+            '\t"status": "Finished",',
+            '\t"test_data": [[3, 0, 1]]',
+            '}']
+          ]
+        }
+      }
+    ]
+    const getChevron = (id) => {
+      return `<svg class="bi bi-chevron-" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M9.646 6.646a.5.5 0 01.708 0l6 6a.5.5 0 01-.708.708L10 7.707l-5.646 5.647a.5.5 0 01-.708-.708l6-6z" clip-rule="evenodd"></path>
+</svg>`
+    }
+    const getChevronDown = () => {
+      return `<svg class="bi bi-chevron-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M3.646 6.646a.5.5 0 01.708 0L10 12.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z" clip-rule="evenodd"></path>
+</svg>`
+    }
+    const startApiSection = (data) => {
+      return `<div class="endpoint-section">
+                <div id='${data.id}' class="endpoint-header"><h2> <code>${data.type}</code> ${data.endpoint} <span id="${data.id}-arrow" class='chevron-arrow'>${getChevron(data.id)}</span></h2></div>
+                <div id='${data.id}-code' class='hidden'>`
+    }
+
+    const endApiSection = () => {
+      return '</div></div>'
+    }
+
+    const commandLineHtml = (arrayOfLines, command) => {
+      let html = '<pre class="command-line">';
+      if (command !== '') {
+        html += `<span class="command">${command}</span>\n`
+      }
+      arrayOfLines.forEach((line) => {
+        html += `<span class="output">${line}</span>\n`
+      })
+      html += '</pre>'
+      return html;
+    }
+    
+    const createBodySection = (data) => {
+      let html = '<h4 class="endpoint-body">Body</h4>'
+      html += commandLineHtml(data.lines, '');
+      return html;
+    }
+
+    const createResponseSection = (data) => {
+      let html = '<h4 class="endpoint-response">Response</h4>'
+      html += commandLineHtml(data.lines, '');
+      return html;
+    }
+
+    const createExampleSection = (data) => {
+
+      let html = '<h4 class="endpoint-example">Example</h4>'
+      data.lines.forEach((arrayOfLines, index) => {
+        if (index === 0) {
+          html += commandLineHtml(arrayOfLines, data.command)
+        } else {
+          html += commandLineHtml(arrayOfLines, '');
+        }
+      })
+      return html;
+    }
+    const attachHideCodeEvent = (id) => {
+      // console.log(`#${id}-arrow`);
+      $("#" + id).on('click', () => {
+        $(`#${id}-code`).toggleClass("hidden");
+        const chevron = $(`#${id}-arrow`)
+        if (chevron.html() == getChevronDown()) {
+          chevron.html(getChevron());
+        } else {
+          chevron.html(getChevronDown());
+        }
+        
+      })
+    }
+    const initApiSection = () => {
+      
+        const apiSection = $("#api-endpoints");
+        
+        API_JSON.forEach(endpointData => {
+            let section = startApiSection(endpointData);
+            
+            if (endpointData.hasOwnProperty("body")) {
+              section += createBodySection(endpointData.body)
+            }
+            if (endpointData.hasOwnProperty("response")) {
+              section += createResponseSection(endpointData.response)
+            }
+            if (endpointData.hasOwnProperty("example")) {
+              section += createExampleSection(endpointData.example)
+            }
+
+            section += endApiSection();
+            
+            apiSection.append(section);
+            attachHideCodeEvent(endpointData.id);
+        })
+    }
+    initApiSection();
+
+    $("#api-button").on("click", () => {
+      $([document.documentElement, document.body]).animate({
+        scrollTop: $("#api-endpoints").offset().top
+    }, 500);
+    })
+  </script>
 {% endblock %}
 </html>

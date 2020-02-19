@@ -231,6 +231,20 @@ body {
   padding: 1px;
   border-bottom: 4px solid #c7254e;
   margin-top: 5vh;
+  transition: all 0.5s;
+  cursor: pointer;
+}
+.endpoint-header:hover {
+  background-color: #c7254e;
+  color: white;
+}
+.chevron-arrow {
+  float: right;
+  font-size: calc(15px + 3vw);
+  transition: transform 0.5s;
+}
+.rotated {
+  transform: rotate(180deg);
 }
 .endpoint-body {
   color: white;

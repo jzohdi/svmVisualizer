@@ -3,7 +3,7 @@ let myChartCreated = false;
 let defaultAnimation = "easeInQuint";
 let CURRENT_DATA = "Sample";
 const sizeFor3dPoint = 10;
-const sizeFor2dPoint = 15;
+const sizeFor2dPoint = 12;
 
 const goToPage = (SVMmethod, chartId, dataId) => {
   const url =

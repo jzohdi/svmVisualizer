@@ -4,7 +4,7 @@ let defaultAnimation = "easeInQuint";
 let CURRENT_DATA = "Sample";
 // TODO calculate these values based on the width of the chart and the number of data points.
 const sizeFor3dPoint = 10;
-const sizeFor2dPoint = 15;
+const sizeFor2dPoint = 13;
 
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {

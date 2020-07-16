@@ -240,7 +240,7 @@ body {
 }
 .chevron-arrow {
   float: right;
-  font-size: calc(15px + 3vw);
+  /* font-size: calc(15px + 3vw); */
   transition: transform 0.5s;
 }
 .rotated {
@@ -263,4 +263,10 @@ body {
   margin: 0px;
   background-color: rgb(255, 99, 132); /* rgb(255, 99, 132); red */
   padding: 12px;
+}
+
+@media (min-width: 1200px) {
+  .container {
+    width: 1275px !important;
+  }
 }

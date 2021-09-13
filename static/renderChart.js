@@ -43,11 +43,16 @@ const layout = {
 
 const createScatter = (dataSet, targetCanvas) => {
   const dimensions = getChartWidth();
+  const target = document.getElementById(targetCanvas); 
   layout.width = dimensions;
   layout.height = dimensions;
   // layout["margin-left"] = dimensions["margin-left"];
-  $("#" + targetCanvas).empty();
-  Plotly.newPlot(targetCanvas, dataSet, layout);
+  if (target) {
+    target.innerHTML = ""
+    Plotly.newPlot(targetCanvas, dataSet, layout);
+  } else {
+    console.error("createScatter: no target canvas found")
+  }
 };
 
 const deepCopy = obj => {
@@ -208,7 +213,7 @@ const parse3dData = data_set => {
   return Object.values(traces);
 };
 
-const parseModelData = (data, SVMmethod, chartId) => {
+function parseModelData(data, chartId) {
   delete data["status"];
   const bestParams = data["params"];
   delete data["params"];
@@ -226,36 +231,41 @@ const parseModelData = (data, SVMmethod, chartId) => {
   createScatter(dataSet, chartId);
   waiting = false;
   console.log("method call successful");
-  $("#" + chartId + "-message").html("Best Params: " + string(bestParams));
+  document.getElementById(`${chartId}-message`).innerText = `Best Params: ${string(bestParams)}\n\nBest Score: ${bestScore}`;
 };
 
-const retrieveModel = (SVMmethod, chartId, model_id) => {
+function retrieveModel(SVMmethod, chartId, model_id) {
   // Do retrive model once at beginning to check if the data set is cached in data base.
-  $.get("/retrieve_model/" + model_id).done(function(data) {
+  fetch("/retrieve_model/" + model_id).then(res => res.json()).then(data => {
     if (data["status"] === "Finished") {
-      parseModelData(data, SVMmethod, chartId);
+      parseModelData(data, chartId);
     } else if (data.hasOwnProperty("error")) {
       clearInterval(intervalID);
     } else {
-      let intervalID = null;
-      intervalID = setInterval(function() {
-        $.get("/retrieve_model/" + model_id).done(function(data) {
-          if (data["status"] === "Finished") {
-            parseModelData(data, SVMmethod, chartId);
-            clearInterval(intervalID);
-          } else if (data.hasOwnProperty("error")) {
-            clearInterval(intervalID);
-          }
-        });
-      }, 5000);
+      retryRetrieve(chartId, model_id);
     }
-  });
+  })
 };
 
+function retryRetrieve(chartId, model_id) {
+  let intervalID = null;
+  intervalID = setInterval(function() {
+    fetch("/retrieve_model/" + model_id).then(res => res.json()).then(data => {
+      if (data["status"] === "Finished") {
+        parseModelData(data, chartId);
+        clearInterval(intervalID);
+      } else if (data.hasOwnProperty("error")) {
+        clearInterval(intervalID);
+      }
+    });
+  }, 5000);
+}
+
 const handleError = () => {
-  $("#myChart-message").html(
-    "URL not formed correctly...\n Going back to main page."
-  );
+  const messageDiv = document.getElementById("myChart-message");
+  if (messageDiv) {
+    messageDiv.innerText = "URL not formed correctly...\n Going back to main page."
+  }
   setTimeout(() => {
     location.href = "/svm_visualizer";
   }, 2000);

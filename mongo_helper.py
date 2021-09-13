@@ -37,6 +37,7 @@ class MongoHelper:
 
     def connect_to_db(self, method, kwargs=None):
         client = None
+        mydb = None
         return_value = {'success': False, "value": False}
         try:
             client = self.connect_db()
@@ -54,11 +55,12 @@ class MongoHelper:
         except Exception as err:
             print(err)
             print(self.traceback.print_exc())
-            error_collection = mydb[self.env.get('ERROR_DB')]
-            error_collection.insert_one({
-                'error': str(err),
-                'date/time': self.get_date_time()
-            })
+            if mydb:
+                error_collection = mydb[self.env.get('ERROR_DB')]
+                error_collection.insert_one({
+                    'error': str(err),
+                    'date/time': self.get_date_time()
+                })
             if client:
                 client.close()
             return return_value

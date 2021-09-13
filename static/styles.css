@@ -39,6 +39,10 @@ body {
   font-weight: 600;
   /* background-color: rgb(25, 150, 100); */
 }
+.svm-instructions-list ul {
+  list-style-type: decimal;
+  display: list-item;
+}
 .about-section1 {
   text-align: center;
   padding-top: 20px;
@@ -141,10 +145,16 @@ body {
 .run-button:hover {
   background-color: #3747d481;
 }
+.gitbutton {
+  border-color: white;
+  color: white;
+}
 .gitbutton:hover {
   background-color: black;
 }
 .info-button {
+  border-color: white;
+  color: white;
   padding: 10px;
   margin-bottom: 15px;
   font-size: calc(12px + 0.5vw);

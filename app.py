@@ -17,6 +17,7 @@ from requests import get
 from re import sub
 from bs4 import BeautifulSoup
 from random import shuffle
+from ast import literal_eval
 #### start svm dependencies ############
 import json
 import numpy as np
@@ -177,8 +178,21 @@ def get_quotes():
 
 @app.route("/train_model/", methods=["POST", "GET"])
 def get_model():
-    method = request.form.get('runMethod', '')
-    data_set = request.form.get('data_set')
+    data = json.loads(request.data)
+    method = data.get('runMethod')
+    data_set = parse_dataset(data.get('data_set'))
+    
+
+    if method is None:
+        return jsonify({
+            "Status": "Invalid",
+            "Error": "Provided method: None"
+        })
+    if data_set is None or not is_valid_dataset(data_set):
+        return jsonify({
+            "Status": "Invalid",
+            "Error": f"Invalid dataset: {data_set}. Must not be none or empty, and must be 2d or 3d array."
+        })        
     #    print("args ", data_set, " ", method)
     training_data = np.array([[]])
     label_data = []
@@ -348,6 +362,25 @@ def update_queries(collection, query, new_values):
     num_changed = collection.update_many(query, set_values)
     return num_changed
 
+def parse_dataset(data):
+    if data == "Sample":
+        return data
+    if isinstance(data, str):
+        return literal_eval(data)
+    return data
+
+def is_valid_dataset(data) -> bool:
+    if data is None:
+        return False
+    if data == "Sample":
+        return True
+    if not isinstance(data, list):
+        return False
+    if len(data) == 0:
+        return False
+    if len(data[0]) == 3 or len(data[0]) == 4:
+        return True
+    return False
 
 if __name__ == "__main__":
     app.debug = True

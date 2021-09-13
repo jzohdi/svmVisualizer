@@ -180,8 +180,7 @@ const cacheData = {};
 
 const runMethod = chartId => {
   console.log("running method...");
-  const selectedText = $("#select-method :selected").text(); // The text content of the selected option
-  const selectedVal = $("#select-method").val();
+  const selectedVal = document.getElementById("select-method").value;
   if (cacheData.hasOwnProperty(selectedVal) && CURRENT_DATA === "Sample") {
     createScatter(cacheData[selectedVal].plot, chartId);
   } else {
@@ -218,7 +217,7 @@ const parseModelData = (data, SVMmethod, chartId) => {
 
 const showSamplePlot = (SVMmethod, chartId, model_id) => {
   // Do retrive model once at beginning to check if the data set is cached in data base.
-  $.get("/retrieve_model/" + model_id).done(function(data) {
+  fetch("/retrieve_model/" + model_id).then( res => res.json()).then(data => {
     if (data["status"] === "Finished") {
       parseModelData(data, SVMmethod, chartId);
     } else if (data.hasOwnProperty("error")) {
@@ -232,38 +231,45 @@ const showSamplePlot = (SVMmethod, chartId, model_id) => {
 const initSampleData = () => {
   const SVMmethod = "Sample Data";
   const chartId = "myChart";
-  $.post("/train_model/", {
+  const body = {
     runMethod: SVMmethod,
-    data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
+    data_set: CURRENT_DATA
+  }
+  fetch("/train_model/", {
+    method: "POST",
+    body: JSON.stringify(body)
+  }).then(res => res.json()).then(data => {
+    if (data.Status == "Success") {
+      showSamplePlot(SVMmethod, chartId, data.Id);
+    } else if (data.Status === "Invalid") {
+      alert(data.Error);
+    } else {
+      alert("Something went wrong.");
+    }
+  }).catch(error => {
+    alert(error);
   })
-    .done(function(data) {
-      if (data.Status == "Success") {
-        showSamplePlot(SVMmethod, chartId, data.Id);
-      } else {
-        alert("Something went wrong.");
-      }
-    })
-    .fail(function(error) {
-      alert(error);
-    });
 };
 
 const showModel = (SVMmethod, chartId) => {
   // console.log(CURRENT_DATA);
-  $.post("/train_model/", {
+  const data = {
     runMethod: SVMmethod,
     data_set: CURRENT_DATA === "Sample" ? CURRENT_DATA : string(CURRENT_DATA)
+  }
+  fetch("/train_model/", {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).then(res => res.json()).then( data => {
+    if (data.Status == "Success") {
+      goToPage(SVMmethod, chartId, data.Id);
+    } else {
+      console.error(data)
+      alert("Something went wrong.");
+    }
+  }).catch(error => {
+    alert(error);
   })
-    .done(function(data) {
-      if (data.Status == "Success") {
-        goToPage(SVMmethod, chartId, data.Id);
-      } else {
-        alert("Something went wrong.");
-      }
-    })
-    .fail(function(error) {
-      alert(error);
-    });
 };
 const getChartWidth = () => {
   if (window.innerWidth < 1200) {
@@ -307,7 +313,8 @@ const createScatter = (dataSet, targetCanvas) => {
 };
 
 const runData = () => {
-  const selectedData = $("#select-data :selected").text();
+  const selectedData = document.getElementById("select-data").value;
+  const errorMessageDiv = document.getElementById("manual-data-error")
 
   if (selectedData === "Sample Data") {
     CURRENT_DATA = "Sample";
@@ -317,14 +324,12 @@ const runData = () => {
     const manualData = parseManualData();
 
     if (manualData[0] == undefined) {
-      $("#manual-data-error").html(
-        "Could not parse data, check that all rows are filled appropriately."
-      );
+      errorMessageDiv.innerHTML = "Could not parse data, check that all rows are filled appropriately."
       return;
     }
 
     if (!(manualData[0].length == 3 || manualData[0].length == 4)) {
-      $("#manual-data-error").html("please enter 2 or 3 dimensional data");
+      errorMessageDiv.innerHTML = "please enter 2 or 3 dimensional data";
       return;
     }
 
@@ -365,7 +370,7 @@ const getAverageDimensions = twoDArray => {
 
 const parseManualData = () => {
   let final = [];
-  const rawInput = $("#manual-data").val();
+  const rawInput = document.getElementById("manual-data").value;
 
   const parsed = rawInput.split("\n");
 
@@ -409,7 +414,10 @@ const transform3dData = twoDarray => {
 const initMethodChart = () => {
   createScatter([{}], "myChart");
   setTimeout(() => {
-    $("#myChart-message").empty();
+    const target = document.getElementById("myChart-message");
+    if (target) {
+      target.innerHTML = "";
+    } 
   }, 50);
 };
 

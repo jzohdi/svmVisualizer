@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html id='svm-html'lang="en">
-    {% block head %}
+  {% block head %}
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,41 +9,34 @@
       type="text/css"
       href="{{ url_for('static', filename='styles.css') }}"
     />
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="https://code.jquery.com/jquery.js"></script>
-    <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+    <!-- Latest compiled and minified plotly.js JavaScript -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
- <!-- Latest compiled and minified plotly.js JavaScript -->
- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- OR use a specific plotly.js release (e.g. version 1.5.0) -->
+    <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
 
- <!-- OR use a specific plotly.js release (e.g. version 1.5.0) -->
- <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
-
-<script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-  {{
-    JSGlue.include()
-  }}
-<title>{% block title %} SVM Visualizer {% endblock %}</title>
-<script>
-  Flask.url_for("svm_visualizer");
-</script>
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      </script>
+      {{
+        JSGlue.include()
+      }}
+    <title>{% block title %} SVM Visualizer {% endblock %}</title>
+    <script>
+      Flask.url_for("svm_visualizer");
+    </script>
   </head>
   {% endblock %}
   {% block main %}
   <body>
     <div class='container-fluid'>
       <div class="row header-text">
-        <div class="col-xs-12">
+        <div class="col">
           <h2>2D/3D Support Vector Machine Visualizer</h2>
           <button id='info-button' class="run-button info-button">What does this program do?</button>
           <p>All methods use scikit-learn GridSearchCV() with a range of parameters to find best results.</p>
@@ -51,32 +44,32 @@
           <input value="API" type="button" class="run-button gitbutton" id="api-button">
         </div>
       </div>
-      <div class="row header-text2">
-        <div class="col-sm-8 col-sm-offset-2">
-          <h4>1) Choose data (Sample Data is loaded by default) then click Run</h4>
-          <h4>2) Choose SVM method then click Run </h4>
-          <h4 style="color: red; font-weight: bold;">* Running method will render plot in a new tab *</h4>
-          <h4>* Manual Data box can be found below *</h4>
-        </div>
-      </div>
     </div>
     <div class="container">
+      <section class="row header-text2">
+        <div class="col">
+          <h2 >Instructions</h2>
+          <ol class="svm-instructions-list">
+            <ul>Choose data - Sample Data is loaded by default, and manual data can be entered below</ul>
+            <ul>Click run to view the data plot</ul>
+            <ul>Choose SVM method from the drop down list</ul>
+            <ul>Click run to view results in a new tab</ul>
+          </ol>
+        </section>      
       <div class="row">
-        <div style='text-align:center;'class="col-lg-12">
-          <div class='row'>
-          <div class='col-xs-6'>
-            <div class='choose-method'>
-              <h4>Data to use:</h4>  
-              <select id='select-data' style="margin-bottom: 10px;">
-                <option>Sample Data</option>
-                <option>Manual Data</option>
-              </select>
-              <button class="run-button" onClick='runData()'>Run</button>
-              <p id='manual-data-error'></p>
-            </div>
+        <div class='col-xs-12 col-sm-6'>
+          <div class='choose-method'>
+            <h4>Data to use:</h4>  
+            <select id='select-data' style="margin-bottom: 10px;">
+              <option>Sample Data</option>
+              <option>Manual Data</option>
+            </select>
+            <button class="run-button" onClick='runData()'>Run</button>
+            <p id='manual-data-error'></p>
           </div>
-          <div class='col-xs-6'>
-            <div class='choose-method'>
+        </div>
+        <div class='col-xs-12 col-sm-6'>
+          <div class='choose-method'>
             <h4>Choose Method :</h4>
             <select id="select-method" style="margin-bottom: 10px;">
               <option value="Linear">Linear Kernel</option>
@@ -90,7 +83,8 @@
             <button class="run-button" onClick='runMethod("myChart")'>Run</button>
           </div>
         </div>
-          </div>
+      </div>
+        <div class="row">
           <!-- <canvas id="myChart" width="200" height="200"></canvas> -->
           <div id='myChart'></div>
         </div>
@@ -119,7 +113,7 @@
     <div class="row">
       <div class='col-xs-12'>
         <h3>Example Input: </h3>
-        <textarea style='width:100%;height:300px;text-align: left;'>1, 3, 2, no&#013;2, 2, 3, no&#013;2, 1, 1, no&#013;3, 4, 3, no
+        <textarea class='manual-table-textarea'>1, 3, 2, no&#013;2, 2, 3, no&#013;2, 1, 1, no&#013;3, 4, 3, no
 5, 6, 3, yes&#013;4, 5, 4, yes&#013;7, 5, 3, yes&#013;6, 4, 2, yes&#013;2, 3, 1, yes&#013;4, 5, 1, yes&#013;3, 4, 1, yes
 4, 2, 3 ,no&#013;4, 3, 2, no&#013;5, 3, 3, no</textarea>
        </div>
@@ -162,7 +156,7 @@
     
     const createModal = (someIdOnPage, content) => {
       const modalContent = MODAL_DIV.replace("contentPlaceHolder", content);
-      $(someIdOnPage).html(modalContent);
+      document.getElementById(someIdOnPage).html(modalContent);
 
       const modal = document.getElementById("myModal");
       // const openButton = document.getElementById(triggerId);
@@ -173,7 +167,7 @@
 
       span.onclick = function() {
         modal.style.display = "none";
-        $(someIdOnPage).empty();
+        document.getElementById(someIdOnPage).empty();
       };
       if (done != undefined) {
         done.onclick = () => {
@@ -188,7 +182,7 @@
     };
 
   
-    $("#info-button").on("click", () => {
+    document.getElementById("info-button").addEventListener("click", () => {
       createModal("#modal-holder", MODAL_CONTENT);
     })
   </script>
@@ -261,19 +255,16 @@
         }
       }
     ]
-    const getChevron = (id) => {
-      return `<svg class="bi bi-chevron-" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-  <path fill-rule="evenodd" d="M9.646 6.646a.5.5 0 01.708 0l6 6a.5.5 0 01-.708.708L10 7.707l-5.646 5.647a.5.5 0 01-.708-.708l6-6z" clip-rule="evenodd"></path>
-</svg>`
-    }
-    const getChevronDown = () => {
-      return `<svg class="bi bi-chevron-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-  <path fill-rule="evenodd" d="M3.646 6.646a.5.5 0 01.708 0L10 12.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z" clip-rule="evenodd"></path>
-</svg>`
-    }
+    const chevronUp = `<svg class="bi bi-chevron-" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M9.646 6.646a.5.5 0 01.708 0l6 6a.5.5 0 01-.708.708L10 7.707l-5.646 5.647a.5.5 0 01-.708-.708l6-6z" clip-rule="evenodd"></path>
+                      </svg>`;
+  
+    const chevronDown = `<svg class="bi bi-chevron-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" d="M3.646 6.646a.5.5 0 01.708 0L10 12.293l5.646-5.647a.5.5 0 01.708.708l-6 6a.5.5 0 01-.708 0l-6-6a.5.5 0 010-.708z" clip-rule="evenodd"></path>
+                        </svg>`;
     const startApiSection = (data) => {
       return `<div class="endpoint-section">
-                <div id='${data.id}' class="endpoint-header"><h2> <code>${data.type}</code> ${data.endpoint} <span id="${data.id}-arrow" class='chevron-arrow'>${getChevron(data.id)}</span></h2></div>
+                <div id='${data.id}' class="endpoint-header"><h2> <code>${data.type}</code> ${data.endpoint} <span id="${data.id}-arrow" class='chevron-arrow'>${chevronUp}</span></h2></div>
                 <div id='${data.id}-code' class='hidden'>`
     }
 
@@ -317,22 +308,28 @@
       })
       return html;
     }
-    const attachHideCodeEvent = (id) => {
+    function attachHideCodeEvent(id) {
       // console.log(`#${id}-arrow`);
-      $("#" + id).on('click', () => {
-        $(`#${id}-code`).toggleClass("hidden");
-        const chevron = $(`#${id}-arrow`)
-        if (chevron.html() == getChevronDown()) {
-          chevron.html(getChevron());
+      const target = document.getElementById(id);
+      target.addEventListener("click", () => {
+        const codeTarget = document.getElementById(`${id}-code`);
+        if (codeTarget.classList.contains("hidden")) {
+          codeTarget.classList.remove("hidden");
         } else {
-          chevron.html(getChevronDown());
+          codeTarget.classList.add("hidden")
+        }
+        const chevron = document.getElementById(`${id}-arrow`)
+        if (chevron.innerHTML == chevronDown) {
+          chevron.innerHTML = chevronUp;
+        } else {
+          chevron.innerHTML = chevronDown;
         }
         
-      })
+      });
     }
-    const initApiSection = () => {
+    function initApiSection(){
       
-        const apiSection = $("#api-endpoints");
+        const apiSection = document.getElementById("api-endpoints");
         
         API_JSON.forEach(endpointData => {
             let section = startApiSection(endpointData);
@@ -349,16 +346,14 @@
 
             section += endApiSection();
             
-            apiSection.append(section);
+            apiSection.insertAdjacentHTML("beforeend",section);
             attachHideCodeEvent(endpointData.id);
         })
     }
     initApiSection();
 
-    $("#api-button").on("click", () => {
-      $([document.documentElement, document.body]).animate({
-        scrollTop: $("#api-endpoints").offset().top
-    }, 500);
+    document.getElementById("api-button").addEventListener("click", () => {
+      document.getElementById("api-endpoints").scrollIntoView();
     })
   </script>
 {% endblock %}

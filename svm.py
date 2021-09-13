@@ -50,7 +50,7 @@ class SVM_Helper:
     """
     def parse_request(self, data_Set):
 
-        raw_data = self.json.loads(data_Set)
+        raw_data = self.parse_list(data_Set)
         dimensions = len(raw_data[0]) - 1
 
         x_data = [float(x[0]) for x in raw_data]
@@ -350,3 +350,8 @@ class SVM_Helper:
     def scale_dimension(self, dimension, factors):
         return round((dimension - factors.get('mean')) / factors.get('stdev'),
                      5)
+
+    def parse_list(self, data):
+        if isinstance(data, str):
+            return self.json.loads(data)
+        return data

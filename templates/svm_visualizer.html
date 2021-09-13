@@ -154,9 +154,14 @@
          text area, which is below the graph. Once manual data is entered, click the Run button next to "Data to use:" to plot. Next Run an SVM method to see the
          predicted space based on this data. <div><button class='run-button done-button'id='done-selection'>Got it!</button></div>`
     
-    const createModal = (someIdOnPage, content) => {
+    function createModal(someIdOnPage, content) {
       const modalContent = MODAL_DIV.replace("contentPlaceHolder", content);
-      document.getElementById(someIdOnPage).html(modalContent);
+      const target = document.getElementById(someIdOnPage);
+      if (!target) {
+        console.error("no modal target found")
+        return;
+      }
+      target.insertAdjacentHTML('beforeend', modalContent);
 
       const modal = document.getElementById("myModal");
       // const openButton = document.getElementById(triggerId);
@@ -167,7 +172,7 @@
 
       span.onclick = function() {
         modal.style.display = "none";
-        document.getElementById(someIdOnPage).empty();
+        target.innerHTML = "";
       };
       if (done != undefined) {
         done.onclick = () => {
@@ -183,7 +188,7 @@
 
   
     document.getElementById("info-button").addEventListener("click", () => {
-      createModal("#modal-holder", MODAL_CONTENT);
+      createModal("modal-holder", MODAL_CONTENT);
     })
   </script>
   <script type="text/javascript">

@@ -12,8 +12,15 @@
   <body>
     <!-- Header Bar -->
     <header class="bg-blue-600 text-white py-4 shadow-md">
-        <div class="container mx-auto px-4">
+        <div class="container mx-auto px-4 flex w-full justify-between">
             <h1 class="text-xl font-bold">SVM Visualizer</h1>
+            <nav class="mt-2">
+                <ul class="flex space-x-4">
+                    <li><a href="/" class="text-white underline">Home</a></li>
+                    <li><a href="/about" class="text-white underline">About</a></li>
+                    <li><a href="/docs" class="text-white underline">API</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
     <div class="w-full h-10"></div>
@@ -21,10 +28,9 @@
         <section class="container mx-auto px-4">
             <div class="mb-4 bg-white p-4 rounded shadow">
                 <p class="text-gray-700">
-                    This application serves as a wrapper around the scikit-learn module, allowing users to visualize 
+                    This application serves as a wrapper around the <a href="https://scikit-learn.org" class="text-blue-600 underline" target="_blank">scikit-learn</a>  module, allowing users to visualize 
                     2D and 3D datasets interactively. You can select or load datasets, manipulate data directly in the table, 
-                    and train SVM models using various kernel methods. It's designed to make data exploration and 
-                    machine learning visualization more accessible and intuitive.
+                    and train SVM models using various kernel methods. The visualization represents the prediction space for the trained model, opacity represents confidence.
                 </p>
             </div>            
             <div class="flex justify-between">

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - SVM Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header Bar -->
+    <header class="bg-blue-600 text-white py-4 shadow-md">
+        <div class="container mx-auto px-4 flex w-full justify-between">
+            <h1 class="text-xl font-bold">SVM Visualizer</h1>
+            <nav class="mt-2">
+                <ul class="flex space-x-4 text-xs sm:text-lg">
+                    <li><a href="/" class="text-white underline">Home</a></li>
+                    <li><a href="/about" class="text-white underline">About</a></li>
+                    <li><a href="/docs" class="text-white underline">API</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold mb-4">About</h2>
+
+        <section class="bg-white p-6 rounded shadow mb-8">
+            <h3 class="text-xl font-semibold mb-2">How It Works</h3>
+            <p class="text-gray-700 mb-4">
+                The SVM Visualizer is a web application built to make machine learning experimentation and visualization accessible and interactive. 
+                It wraps around the <a href="https://scikit-learn.org" class="text-blue-600 underline" target="_blank">scikit-learn</a> 
+                library, a widely used Python toolkit for machine learning, to allow users to visualize Support Vector Machines (SVMs) on 2D and 3D datasets.
+            </p>
+            <p class="text-gray-700">
+                Users can experiment with various SVM kernel methods (Linear, Polynomial, RBF, etc.), input their custom training and testing datasets, 
+                and observe how different methods influence the decision boundaries and classification results.
+            </p>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow mb-8">
+            <h3 class="text-xl font-semibold mb-2">Intended Usage</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <li class="mb-2">
+                    <strong>Dataset Preparation:</strong> Users can upload or manually input 2D or 3D datasets. Sample datasets are also provided for quick testing. Higher dimensions can be used but only the first 3 dimensions will be plotted.
+                </li>
+                <li class="mb-2">
+                    <strong>Model Selection:</strong> Choose an SVM kernel method (e.g., Linear, Polynomial, RBF) or other classifiers such as KNN, Decision Tree, or Random Forest.
+                </li>
+                <li class="mb-2">
+                    <strong>Training:</strong> Submit the prepared dataset for training. The app schedules training tasks asynchronously and provides status updates (e.g., pending or complete).
+                </li>
+                <li class="mb-2">
+                    <strong>Visualization:</strong> Once training is complete, visualize the decision boundaries and classifications on the provided dataset. Confidence levels are represented visually in 2D and 3D graphs.
+                </li>
+                <li>
+                    <strong>Export CSV</strong> Export the classification results and other metrics in CSV format for further analysis.
+                </li>
+            </ul>
+        </section>
+        <section class="bg-white p-6 rounded shadow mb-8">
+            <h3 class="text-xl font-semibold mb-2">Supported Kernels</h3>
+            <div class="text-gray-700">
+                <h4 class="text-lg font-semibold mb-2">Linear Kernel</h4>
+                <p class="mb-4">The Linear Kernel is the simplest kernel method and is used when the data is linearly separable. It is computationally efficient and effective for datasets where a linear decision boundary can separate the classes. This kernel is often used in text classification tasks and other scenarios with high-dimensional data.</p>
+
+                <h4 class="text-lg font-semibold mb-2">Polynomial Kernel</h4>
+                <p class="mb-4">The Polynomial Kernel can model more complex relationships by introducing polynomial features of the input data. It is well-suited for datasets where the relationship between features is non-linear and higher-order interactions are important. The degree of the polynomial can be adjusted to control the complexity of the model.</p>
+
+                <h4 class="text-lg font-semibold mb-2">RBF (Radial Basis Function) Kernel</h4>
+                <p class="mb-4">The RBF Kernel, also known as the Gaussian Kernel, is widely used for non-linear data. It maps the input features into an infinite-dimensional space, allowing for complex decision boundaries. This kernel works well in scenarios where the relationship between features is not linear or polynomial.</p>
+
+                <h4 class="text-lg font-semibold mb-2">Log Regression Kernel</h4>
+                <p class="mb-4">Logistic Regression Kernel applies logistic regression as the classification method, useful for binary classification problems. It provides probabilities for class membership, making it suitable for tasks where confidence levels are important.</p>
+
+                <h4 class="text-lg font-semibold mb-2">KNN (K-Nearest Neighbors)</h4>
+                <p class="mb-4">The KNN Kernel classifies points based on the majority class of their nearest neighbors. It is simple, interpretable, and effective for datasets with well-separated clusters. However, it may struggle with high-dimensional data due to the curse of dimensionality.</p>
+
+                <h4 class="text-lg font-semibold mb-2">Decision Tree</h4>
+                <p class="mb-4">The Decision Tree Kernel uses a tree-like model of decisions to classify data points. It is intuitive, interpretable, and handles both numerical and categorical data. It works well on smaller datasets but can overfit if not properly regularized.</p>
+
+                <h4 class="text-lg font-semibold mb-2">Random Forest</h4>
+                <p>The Random Forest Kernel is an ensemble method that combines multiple decision trees to improve classification accuracy and reduce overfitting. It is robust, versatile, and performs well on a wide range of datasets, especially when feature importance needs to be evaluated.</p>
+            </div>
+        </section>
+        <section class="bg-white p-6 rounded shadow">
+            <h3 class="text-xl font-semibold mb-2">Features</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <li class="mb-2">Interactive data manipulation with real-time table editing.</li>
+                <li class="mb-2">Support for 2D and 3D datasets with dynamic visualization.</li>
+                <li class="mb-2">Multiple SVM kernel methods and classifier options.</li>
+                <li class="mb-2">Ability to load sample datasets or import CSV files.</li>
+                <li>Asynchronous background training with progress updates.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

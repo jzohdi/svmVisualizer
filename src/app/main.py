@@ -96,6 +96,16 @@ async def read_html():
         html_content = file.read()
     return HTMLResponse(content=html_content)
 
+@app.get("/about", response_class=HTMLResponse)
+async def read_html():
+    index_file_path = os.path.join(templates_directory, "about.html")
+    if not os.path.exists(index_file_path):
+        raise FileNotFoundError(f"Template not found: {index_file_path}")
+    
+    with open(index_file_path, "r") as file:
+        html_content = file.read()
+    return HTMLResponse(content=html_content)
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy"}

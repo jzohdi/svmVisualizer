@@ -218,3 +218,36 @@ def test_security_headers(base_url, path):
     assert "object-src 'none'" in csp
     script_src = next(d for d in csp.split("; ") if d.startswith("script-src "))
     assert "'unsafe-inline'" not in script_src and "'unsafe-eval'" not in script_src
+
+
+# ---------- result ids ----------
+
+def example_body(base_url, name, method):
+    """The request the page sends for a sample dataset (label first, then the numbers, as parseTableData builds it)."""
+    status, _, body = request(f"{base_url}/static/{name}")
+    assert status == 200
+    rows = [line.split(",") for line in body.decode().splitlines() if line.strip()]
+    return {
+        "training_data": [[float(c.strip() or 0) for c in r[1:]] for r in rows],
+        "labels": [r[0].strip() for r in rows],
+        "method": method,
+    }
+
+
+@pytest.mark.trains
+def test_testing_data_gets_its_own_id(base_url):
+    body = example_body(base_url, "example1.csv", "Linear")
+    status, _, out = request(base_url + "/api/train_model", "POST", body)
+    assert status == 200 and json.loads(out)["id"] == EX1_LINEAR  # the UI's id is unchanged (and cached)
+
+    # The same request with its own testing_data must not claim (or be served) the example's result.
+    status, _, out = request(base_url + "/api/train_model", "POST", {**body, "testing_data": [[0, 0]]})
+    j = json.loads(out)
+    assert status == 200 and j["id"] != EX1_LINEAR and j["status"] == "pending"
+    deadline = time.monotonic() + 120
+    while (r := json.loads(request(f"{base_url}/api/train_result/{j['id']}")[2]))["status"] != "complete":
+        assert time.monotonic() < deadline
+        time.sleep(1)
+    assert json.loads(r["result"]["testing_data"]) == [[0.0, 0.0]]
+    cached = json.loads(request(f"{base_url}/api/train_result/{EX1_LINEAR}")[2])["result"]
+    assert len(json.loads(cached["testing_data"])) == 50 * 50

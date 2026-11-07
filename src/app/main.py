@@ -156,13 +156,18 @@ class TrainingResponse(BaseModel):
     result: Optional[SvmResultResponse] = None
 
 
-def generate_unique_id(training_data, labels, method):
+def generate_unique_id(training_data, labels, method, testing_data=None):
     # Combine inputs into a consistent string representation
-    input_str = json.dumps({
+    payload = {
         'training_data': training_data, 
         'labels': labels, 
         'method': method
-    }, sort_keys=True)
+    }
+    # testing_data changes the result, so it must change the id too. Added only when given, so the ids of requests
+    # without it (everything the UI sends, and every result already stored) stay the same.
+    if testing_data is not None:
+        payload['testing_data'] = testing_data
+    input_str = json.dumps(payload, sort_keys=True)
     
     # Create SHA-256 hash
     return hashlib.sha256(input_str.encode()).hexdigest()
@@ -209,7 +214,8 @@ async def train_model(
     unique_id = generate_unique_id(
         request.training_data, 
         request.labels, 
-        request.method
+        request.method,
+        request.testing_data,
     )
     
     # Check if record already exists

@@ -6,10 +6,11 @@ training runs as one.
 
 import base64
 import hashlib
+import inspect
 import re
 
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from starlette.datastructures import MutableHeaders
 
 FRAME_ANCESTORS = (
@@ -58,13 +59,24 @@ def _inline_script_hashes(app: FastAPI) -> str:
     return " ".join(f"'sha256-{base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()}'" for s in scripts)
 
 
+def _default(func, name: str) -> str:
+    return inspect.signature(func).parameters[name].default
+
+
 def docs_csp(app: FastAPI) -> str:
-    """FastAPI's /docs (Swagger UI) and /redoc: jsDelivr and fastapi.tiangolo.com's favicon; Redoc also loads Google
-    Fonts, the Redocly logo and a blob: worker, and injects styles."""
+    """FastAPI's /docs (Swagger UI) and /redoc: their jsDelivr files and fastapi.tiangolo.com's favicon; Redoc also
+    loads Google Fonts, the Redocly logo and a blob: worker, and injects styles.
+
+    jsDelivr serves any npm or GitHub file, so only the exact files FastAPI loads are allowed, read from its own
+    defaults so they follow the installed version.
+    """
+    swagger_js = _default(get_swagger_ui_html, "swagger_js_url")
+    swagger_css = _default(get_swagger_ui_html, "swagger_css_url")
+    redoc_js = _default(get_redoc_html, "redoc_js_url")
     return "; ".join([
         "default-src 'self'",
-        f"script-src 'self' https://cdn.jsdelivr.net {_inline_script_hashes(app)}",
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
+        f"script-src 'self' {swagger_js} {redoc_js} {_inline_script_hashes(app)}",
+        f"style-src 'self' 'unsafe-inline' {swagger_css} https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https://fastapi.tiangolo.com https://cdn.redoc.ly",
         "worker-src 'self' blob:",

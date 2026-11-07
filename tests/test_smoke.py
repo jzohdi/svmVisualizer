@@ -218,6 +218,8 @@ def test_security_headers(base_url, path):
     assert "object-src 'none'" in csp
     script_src = next(d for d in csp.split("; ") if d.startswith("script-src "))
     assert "'unsafe-inline'" not in script_src and "'unsafe-eval'" not in script_src
+    # Only exact CDN files: whole CDN hosts (jsDelivr serves any npm or GitHub file) would let any script in.
+    assert not any(src.rstrip("/").count("/") == 2 for src in script_src.split()[1:] if src.startswith("https://"))
 
 
 # ---------- result ids ----------

@@ -1,0 +1,8 @@
+# Test-only dependencies (tests/). Never installed in the Docker image.
+# Compile with:
+#   uv pip compile requirements-dev.in --universal --python-version 3.14 --generate-hashes -o requirements-dev.txt
+# Install next to the app's requirements, then a browser:
+#   pip install -r requirements.txt -r requirements-dev.txt && python -m playwright install chromium
+-c requirements.txt
+pytest
+playwright

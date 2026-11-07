@@ -7,13 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .database import engine, Base
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from .database import get_db
 from .models import SvmResult
 from .svm import train_svm_from_data_then_update_db, ModelMethod
+from .security import SecurityHeadersMiddleware, docs_csp, docs_paths
 import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -60,6 +61,9 @@ app.add_middleware(
     allow_headers=["*"],             # Allow all headers
 )
 
+# Added last, so it is the outermost middleware and covers CORS responses too.
+app.add_middleware(SecurityHeadersMiddleware, docs_paths=docs_paths(app), docs_csp=docs_csp(app))
+
 # Dynamically determine the absolute path to the `static` directory
 current_file_path = os.path.dirname(__file__)  # Directory of `main.py`
 static_directory = os.path.join(current_file_path, "static")
@@ -79,6 +83,8 @@ async def internal_server_error_handler(request: Request, exc: Exception):
     """
     logger.error(f"Unhandled exception: {exc}")
     logger.error("500 error")
+    # datetime.utcnow() warns on Python 3.12+. Kept on purpose: datetime.now(UTC).isoformat() appends "+00:00",
+    # which would change the timestamp format in this JSON.
     return JSONResponse(
         status_code=500,
         content={"message": "An unexpected error occurred. Please try again later.",
@@ -117,11 +123,18 @@ will return results as a list of labels the same length as training data.
 """
 
 
+# Size caps, far above anything the UI sends (example0 has 500 rows of 2 numbers and 1-character labels; the 3D grid
+# has 15,625 points). Without them a small request could store a huge result row: each label is stored once per
+# grid point.
+Row = Annotated[List[float], Field(max_length=100)]
+Label = Annotated[str, Field(max_length=100)]
+
+
 class TrainingRequest(BaseModel):
-    training_data: List[List[float]] = Field(..., min_length=1)
-    labels: List[str] = Field(..., min_length=1)
-    testing_data: Optional[List[List[float]]] = Field(
-        default=None, description=testing_description, min_length=1)
+    training_data: List[Row] = Field(..., min_length=1, max_length=10_000)
+    labels: List[Label] = Field(..., min_length=1, max_length=10_000)
+    testing_data: Optional[List[Row]] = Field(
+        default=None, description=testing_description, min_length=1, max_length=20_000)
     method: ModelMethod
 
 class TrainingStatus(str, Enum):
@@ -143,13 +156,18 @@ class TrainingResponse(BaseModel):
     result: Optional[SvmResultResponse] = None
 
 
-def generate_unique_id(training_data, labels, method):
+def generate_unique_id(training_data, labels, method, testing_data=None):
     # Combine inputs into a consistent string representation
-    input_str = json.dumps({
+    payload = {
         'training_data': training_data, 
         'labels': labels, 
         'method': method
-    }, sort_keys=True)
+    }
+    # testing_data changes the result, so it must change the id too. Added only when given, so the ids of requests
+    # without it (everything the UI sends, and every result already stored) stay the same.
+    if testing_data is not None:
+        payload['testing_data'] = testing_data
+    input_str = json.dumps(payload, sort_keys=True)
     
     # Create SHA-256 hash
     return hashlib.sha256(input_str.encode()).hexdigest()
@@ -196,7 +214,8 @@ async def train_model(
     unique_id = generate_unique_id(
         request.training_data, 
         request.labels, 
-        request.method
+        request.method,
+        request.testing_data,
     )
     
     # Check if record already exists

@@ -6,3 +6,10 @@ venv
 # Created by venv; see https://docs.python.org/3/library/venv.html
 venv/**/*
 fly.toml
+
+# Not needed in the image
+.git
+__pycache__/
+*.pyc
+tests/
+requirements-dev.*

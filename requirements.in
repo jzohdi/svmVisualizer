@@ -1,0 +1,11 @@
+# Direct dependencies of the app. requirements.txt is compiled from this file for the Docker image (Linux x86_64),
+# with every pin hashed; the hashes cover every wheel of each version, so it installs on macOS too:
+#   uv pip compile requirements.in --universal --python-version 3.14 --generate-hashes -o requirements.txt
+fastapi
+# [standard] keeps uvloop, httptools, watchfiles, websockets, python-dotenv and PyYAML
+uvicorn[standard]
+# [asyncio] installs greenlet, which the async engine needs: SQLAlchemy 2.1 no longer installs it by default
+sqlalchemy[asyncio]
+aiosqlite
+scikit-learn
+numpy

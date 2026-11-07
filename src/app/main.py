@@ -14,6 +14,7 @@ from sqlalchemy.future import select
 from .database import get_db
 from .models import SvmResult
 from .svm import train_svm_from_data_then_update_db, ModelMethod
+from .security import SecurityHeadersMiddleware, docs_csp, docs_paths
 import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -59,6 +60,9 @@ app.add_middleware(
     allow_methods=["*"],             # Allow all HTTP methods
     allow_headers=["*"],             # Allow all headers
 )
+
+# Added last, so it is the outermost middleware and covers CORS responses too.
+app.add_middleware(SecurityHeadersMiddleware, docs_paths=docs_paths(app), docs_csp=docs_csp(app))
 
 # Dynamically determine the absolute path to the `static` directory
 current_file_path = os.path.dirname(__file__)  # Directory of `main.py`

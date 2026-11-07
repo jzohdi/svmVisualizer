@@ -182,3 +182,27 @@ def test_fresh_training_example2_knn(base_url, probe):
     _, points = chart_points(page)
     assert points == {"no": 10081, "yes": 5544}
     assert probe.errors == []
+
+
+# ---------- headers and CSP ----------
+
+def test_redoc(base_url, probe):
+    page = probe.page
+    page.goto(base_url + "/redoc")
+    page.wait_for_selector('[data-section-id^="operation/"]', timeout=60000)
+    assert page.locator('[data-section-id^="operation/"]').count() == len(OPERATIONS)
+    assert probe.errors == []
+
+
+@pytest.mark.parametrize("path", ["/", "/about", "/docs", "/redoc", "/api/health", "/static/index.js"])
+def test_security_headers(base_url, path):
+    _, h, _ = request(base_url + path)
+    h = {k.lower(): v for k, v in h.items()}
+    assert h["x-content-type-options"] == "nosniff"
+    assert h["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert h["permissions-policy"] == "camera=(), microphone=(), geolocation=()"
+    csp = h["content-security-policy"]
+    assert "frame-ancestors 'self' https://jakezohdi.dev https://studio-zohdi-llc.com" in csp
+    assert "object-src 'none'" in csp
+    script_src = next(d for d in csp.split("; ") if d.startswith("script-src "))
+    assert "'unsafe-inline'" not in script_src and "'unsafe-eval'" not in script_src

@@ -83,6 +83,8 @@ async def internal_server_error_handler(request: Request, exc: Exception):
     """
     logger.error(f"Unhandled exception: {exc}")
     logger.error("500 error")
+    # datetime.utcnow() warns on Python 3.12+. Kept on purpose: datetime.now(UTC).isoformat() appends "+00:00",
+    # which would change the timestamp format in this JSON.
     return JSONResponse(
         status_code=500,
         content={"message": "An unexpected error occurred. Please try again later.",

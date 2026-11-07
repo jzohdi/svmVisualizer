@@ -17,6 +17,14 @@ import numpy as np
 import numpy.typing as npt
 from typing import Any
 from dataclasses import dataclass
+import warnings
+
+# scikit-learn 1.9 deprecates SVC(probability=True), to be removed in 1.11. Its replacement,
+# CalibratedClassifierCV(SVC(), ensemble=False), calibrates differently, so the confidences the charts draw would
+# change. Keep it while requirements pin 1.9 or 1.10, and keep the warning (one per SVC fit) out of the logs.
+warnings.filterwarnings(
+    "ignore", message="The `probability` parameter was deprecated", category=FutureWarning, module=r"sklearn\.svm\._base"
+)
 
 @dataclass
 class TrainingResult:

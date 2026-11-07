@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .database import engine, Base
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -123,11 +123,18 @@ will return results as a list of labels the same length as training data.
 """
 
 
+# Size caps, far above anything the UI sends (example0 has 500 rows of 2 numbers and 1-character labels; the 3D grid
+# has 15,625 points). Without them a small request could store a huge result row: each label is stored once per
+# grid point.
+Row = Annotated[List[float], Field(max_length=100)]
+Label = Annotated[str, Field(max_length=100)]
+
+
 class TrainingRequest(BaseModel):
-    training_data: List[List[float]] = Field(..., min_length=1)
-    labels: List[str] = Field(..., min_length=1)
-    testing_data: Optional[List[List[float]]] = Field(
-        default=None, description=testing_description, min_length=1)
+    training_data: List[Row] = Field(..., min_length=1, max_length=10_000)
+    labels: List[Label] = Field(..., min_length=1, max_length=10_000)
+    testing_data: Optional[List[Row]] = Field(
+        default=None, description=testing_description, min_length=1, max_length=20_000)
     method: ModelMethod
 
 class TrainingStatus(str, Enum):

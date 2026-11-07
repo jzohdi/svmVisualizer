@@ -75,7 +75,19 @@ def test_unknown_id_is_pending(base_url):
 @pytest.mark.parametrize("body,loc,type_", [
     ({"training_data": [[1, 2]], "labels": ["a"], "method": "Nope"}, ["body", "method"], "enum"),
     ({"training_data": [], "labels": ["a"], "method": "Linear"}, ["body", "training_data"], "too_short"),
-])
+    # 1-D rows pass validation (only the method fails here); they fail later, in training (pre-existing).
+    ({"training_data": [[1.0]], "labels": ["a"], "method": "Nope"}, ["body", "method"], "enum"),
+    # Size caps
+    ({"training_data": [[1, 2]] * 10_001, "labels": ["a"], "method": "Linear"}, ["body", "training_data"], "too_long"),
+    ({"training_data": [[0.0] * 101], "labels": ["a"], "method": "Linear"}, ["body", "training_data", 0], "too_long"),
+    ({"training_data": [[1, 2]], "labels": ["a"] * 10_001, "method": "Linear"}, ["body", "labels"], "too_long"),
+    ({"training_data": [[1, 2]], "labels": ["a" * 101], "method": "Linear"}, ["body", "labels", 0], "string_too_long"),
+    ({"training_data": [[1, 2]], "labels": ["a"], "method": "Linear", "testing_data": [[1, 2]] * 20_001},
+     ["body", "testing_data"], "too_long"),
+    ({"training_data": [[1, 2]], "labels": ["a"], "method": "Linear", "testing_data": [[0.0] * 101]},
+     ["body", "testing_data", 0], "too_long"),
+], ids=["bad-method", "empty-training", "1d-rows-ok", "too-many-rows", "row-too-long", "too-many-labels",
+        "label-too-long", "too-many-test-points", "test-row-too-long"])
 def test_validation_errors(base_url, body, loc, type_):
     # A request that fails validation never reaches training, so this is safe against a live site.
     status, _, out = request(base_url + "/api/train_model", "POST", body)

@@ -4,7 +4,9 @@ By default the tests start the app themselves: uvicorn runs from a fresh temp di
 app.db, so ./app.db and ./error.log never touch the repo and every run starts from the same cached results.
 
 Environment:
-  SVM_BASE_URL           test a running site instead (read-only: tests marked `trains` are skipped).
+  SVM_BASE_URL           test a running site instead, read-only: tests marked `trains` or `posts` are skipped.
+                         What remains is GETs, the home page's own automatic POST (a cached result) and POSTs
+                         that fail validation (422).
   SVM_TEST_PORT          port for the local server (default: a free one).
   SVM_BROWSER_CHANNEL    Playwright browser channel, e.g. "chrome" for the system Chrome. Default: Playwright's
                          own Chromium (`python -m playwright install chromium`).
@@ -26,14 +28,15 @@ REPO = Path(__file__).resolve().parent.parent
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "trains: trains a fresh model (writes a row); local server only")
+    config.addinivalue_line("markers", "posts: sends a POST beyond the page's own automatic one; local server only")
 
 
 def pytest_collection_modifyitems(config, items):
     if not os.environ.get("SVM_BASE_URL"):
         return
-    skip = pytest.mark.skip(reason="trains a fresh model; skipped against SVM_BASE_URL (read-only)")
+    skip = pytest.mark.skip(reason="trains or POSTs; skipped against SVM_BASE_URL (read-only)")
     for item in items:
-        if "trains" in item.keywords:
+        if "trains" in item.keywords or "posts" in item.keywords:
             item.add_marker(skip)
 
 

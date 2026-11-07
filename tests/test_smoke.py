@@ -128,6 +128,7 @@ def test_home_trains_example2_on_load(base_url, probe):
     assert probe.errors == []
 
 
+@pytest.mark.posts  # clicks Train with example1 + Linear: cached, but still a POST of our own
 def test_home_example1_linear_2d(base_url, probe):
     page = probe.page
     page.goto(base_url + "/")

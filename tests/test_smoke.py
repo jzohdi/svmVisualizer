@@ -21,7 +21,7 @@ OPERATIONS = [
 
 
 def request(url, method="GET", body=None, headers=None):
-    data = None if body is None else (body if isinstance(body, bytes) else json.dumps(body).encode())
+    data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(url, data=data, method=method, headers=headers or {})
     if body is not None:
         req.add_header("Content-Type", "application/json")
@@ -38,10 +38,19 @@ def sha(s):
 
 
 def chart_points(page):
-    """Wait for the Plotly chart, then return (trace type, {trace name: point count})."""
+    """Wait for the Plotly chart, then return ({trace types}, {trace name: point count})."""
     page.wait_for_function("() => document.getElementById('myChart')?.data?.length > 0", timeout=60000)
     traces = page.evaluate("() => document.getElementById('myChart').data.map(t => [t.type, t.name, t.x.length])")
     return {t[0] for t in traces}, {t[1]: t[2] for t in traces}
+
+
+def wait_complete(base_url, model_id, timeout=120):
+    """Poll the result API like the page does, and return the result once training is complete."""
+    deadline = time.monotonic() + timeout
+    while (j := json.loads(request(f"{base_url}/api/train_result/{model_id}")[2]))["status"] != "complete":
+        assert time.monotonic() < deadline, f"{model_id} still {j['status']} after {timeout} s"
+        time.sleep(1)
+    return j["result"]
 
 
 # ---------- API ----------
@@ -119,7 +128,7 @@ def test_home_trains_example2_on_load(base_url, probe):
     page = probe.page
     page.goto(base_url + "/")
     assert page.title() == "SVM Visualizer"
-    assert [o for o in page.locator("#method option").all_inner_texts()] == METHODS
+    assert page.locator("#method option").all_inner_texts() == METHODS
     assert page.locator("#sample-dataset option").all_inner_texts() == ["example2.csv", "example1.csv", "example0.csv"]
     types, points = chart_points(page)
     assert page.input_value("#polling-id") == EX2_LINEAR
@@ -165,6 +174,14 @@ def test_docs(base_url, probe):
     assert probe.errors == []
 
 
+def test_redoc(base_url, probe):
+    page = probe.page
+    page.goto(base_url + "/redoc")
+    page.wait_for_selector('[data-section-id^="operation/"]', timeout=60000)
+    assert page.locator('[data-section-id^="operation/"]').count() == len(OPERATIONS)
+    assert probe.errors == []
+
+
 # ---------- fresh training (local only) ----------
 
 @pytest.mark.trains
@@ -175,14 +192,7 @@ def test_fresh_training_example2_knn(base_url, probe):
     page.select_option("#method", "KNN")
     page.click("#submit")
     page.wait_for_function(f"() => document.getElementById('polling-id').value === '{EX2_KNN}'")
-    deadline = time.monotonic() + 120
-    while True:
-        j = json.loads(request(f"{base_url}/api/train_result/{EX2_KNN}")[2])
-        if j["status"] == "complete" or time.monotonic() > deadline:
-            break
-        time.sleep(1)
-    assert j["status"] == "complete"
-    r = j["result"]
+    r = wait_complete(base_url, EX2_KNN)
     assert (r["method"], r["score"], r["params"]) == ("KNN", 0.8333333333333333, '{"leaf_size": 5, "n_neighbors": 5}')
     assert sha(r["result"]) == "ce872818039a341e7523bfbac65ae06ff553f0a3377d1dddfa17c57bc4839eed"
     confidence = json.loads(r["confidence"])
@@ -198,14 +208,6 @@ def test_fresh_training_example2_knn(base_url, probe):
 
 
 # ---------- headers and CSP ----------
-
-def test_redoc(base_url, probe):
-    page = probe.page
-    page.goto(base_url + "/redoc")
-    page.wait_for_selector('[data-section-id^="operation/"]', timeout=60000)
-    assert page.locator('[data-section-id^="operation/"]').count() == len(OPERATIONS)
-    assert probe.errors == []
-
 
 @pytest.mark.parametrize("path", ["/", "/about", "/docs", "/redoc", "/api/health", "/static/index.js"])
 def test_security_headers(base_url, path):
@@ -247,10 +249,6 @@ def test_testing_data_gets_its_own_id(base_url):
     status, _, out = request(base_url + "/api/train_model", "POST", {**body, "testing_data": [[0, 0]]})
     j = json.loads(out)
     assert status == 200 and j["id"] != EX1_LINEAR and j["status"] == "pending"
-    deadline = time.monotonic() + 120
-    while (r := json.loads(request(f"{base_url}/api/train_result/{j['id']}")[2]))["status"] != "complete":
-        assert time.monotonic() < deadline
-        time.sleep(1)
-    assert json.loads(r["result"]["testing_data"]) == [[0.0, 0.0]]
+    assert json.loads(wait_complete(base_url, j["id"])["testing_data"]) == [[0.0, 0.0]]
     cached = json.loads(request(f"{base_url}/api/train_result/{EX1_LINEAR}")[2])["result"]
     assert len(json.loads(cached["testing_data"])) == 50 * 50

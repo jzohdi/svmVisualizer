@@ -92,11 +92,6 @@ def base_url(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def is_local():
-    return not os.environ.get("SVM_BASE_URL")
-
-
-@pytest.fixture(scope="session")
 def browser():
     from playwright.sync_api import sync_playwright
 

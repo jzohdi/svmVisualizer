@@ -17,7 +17,8 @@ FRAME_ANCESTORS = (
     "frame-ancestors 'self' https://jakezohdi.dev https://studio-zohdi-llc.com https://www.studio-zohdi-llc.com"
 )
 
-# "/", "/about" and everything else. Scripts are pinned to the exact CDN files the templates load. Both Tailwind
+# "/", "/about" and everything else. Scripts are pinned to the exact CDN files the templates load: bump a CDN
+# version in the template and here together (the smoke test's page checks fail on a CSP violation). Both Tailwind
 # runtimes and Plotly inject styles, and the markup has style attributes, hence 'unsafe-inline' for styles only.
 PAGE_CSP = "; ".join([
     "default-src 'self'",
